@@ -43,6 +43,7 @@ public class KafkaInitiateServerAndConf {
 	public void CreateTopic (String host, String port, String replicationFactor, String numberOfPartitions, String topicName) {
 		String command = this.baseApp+"\\bin\\windows\\kafka-topics.bat --create --zookeeper "+host+":"+port+" --replication-factor "+replicationFactor+" --partitions "+numberOfPartitions+" --topic "+topicName;
 		System.out.println("String RUN: "+command);
+		new Thread(new KafkaStarter(command)).start();
 		 
 	}
 	

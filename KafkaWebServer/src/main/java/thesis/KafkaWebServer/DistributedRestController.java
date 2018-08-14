@@ -13,11 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DistributedRestController {
 
-
+	
 	
   @RequestMapping(value = "/uploadChunk", method = RequestMethod.POST)
   public String persistPerson(@RequestBody String msg) {
-	  
+	  //System.out.println("MSG: "+msg);
+	  SaveMessageKafka sm = new SaveMessageKafka ();
 	  /*JsonUtility js = new JsonUtility();
 	  js.setType("Message");
 	  Message xyz = (Message) js.fromJson(msg);
@@ -29,7 +30,8 @@ public class DistributedRestController {
 		path+= image.getName();
 		UtilBase64.decoder(image.getData(), path);
 		return "/Post Successful!";*/
-	  	SaveMessage sm = new SaveMessage (msg);
+	  	sm.SaveMessage(msg);
+	  	
 		return "ok - Ready";
 	  
   }
