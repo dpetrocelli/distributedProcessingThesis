@@ -20,16 +20,20 @@ public class testClient {
 
 	public testClient () {
 		
-		String FFMpegBasePath = "D:\\SOFT\\ffmpeg\\bin\\";
+		// Client.
+		
+		// 1 - Define Paths
+		
+		String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
 		
 		String videoPath = "D:\\DownloadFromBrowser\\video.mp4";
 		String outputPath = "D:\\DownloadFromBrowser\\output";
 		int chunkDuration = 5; // IN SECS
 		
-		// Obtain Video Duration
+		// 2 - Obtain Video Duration
 		float videoDuration = this.obtainVideoDuration (FFMpegBasePath, videoPath);
 		
-		// Obtain numberOfChunks
+		// 3 -  Obtain numberOfChunks
 		int chunks = (int) (videoDuration/chunkDuration);
 		
 		String splittedFile = "";
@@ -42,16 +46,19 @@ public class testClient {
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		HttpPost request = new HttpPost("http://localhost:8080/uploadChunk");
 		HttpResponse response; 
+		String params;
+		
 		
 		for (int i=0; i<1; i++) {
 				output = outputPath+"_part_"+i+".mp4";
 				splittedFile = this.splitVideoFile (i, videoPath, FFMpegBasePath, chunkDuration, output);
+				params = "ffmpeg -loglevel quiet -y -i "+videoPath+" -s 320x180 -aspect 16:9 -c:v libx264 -g 50 -b:v 220k -profile:v baseline -level 3.0 -r 15 -preset ultrafast -threads 0 -c:a aac -strict experimental -b:a 64k -ar 44100 -ac 2 "+videoPath+"_part_"+i+".mp4";
 				// Once splitted, create Message and save in Queue
 				// 1 - Read video file to byte
 				// 2 - Encode to base64 video.
 				try {
 					data = Files.readAllBytes(new File(output).toPath());
-					msg = new Message(output, i, (chunks+1), data, "nothing");
+					msg = new Message(output, i, (chunks+1), data, params);
 					jsonUt.setObject(msg);
 					msgEncoded = jsonUt.toJson();
 					//System.out.println(msgEncoded);
