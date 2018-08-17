@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -15,6 +16,10 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 
 
 
@@ -46,23 +51,21 @@ String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
 		String params;
 		String base64Data;
 		
-		for (int i=0; i<chunks; i++) {
+		for (int i=0; i<1; i++) {
 				output = outputPath+"_part_"+i+".mp4";
 				splittedFile = this.splitVideoFile (i, videoPath, FFMpegBasePath, chunkDuration, output);
 				params = "ffmpeg -loglevel quiet -y -i "+videoPath+" -s 320x180 -aspect 16:9 -c:v libx264 -g 50 -b:v 220k -profile:v baseline -level 3.0 -r 15 -preset ultrafast -threads 0 -c:a aac -strict experimental -b:a 64k -ar 44100 -ac 2 "+videoPath+"_part_"+i+".mp4";
 				// Once splitted, create Message and save in Queue
 				// 1 - Read video file to byte
 				// 2 - Encode to base64 video.
+				
+				
 				try {
 					data = Files.readAllBytes(new File(output).toPath());
-					base64Data = new String(data);
-					msg = new Message(output, i, (chunks+1), base64Data, params);
+					msg = new Message(output, i, (chunks+1), data, params);
 					jsonUt.setObject(msg);
 					msgEncoded = jsonUt.toJson();
-					//System.out.println(msgEncoded);
-					//System.out.println(output + " String Base64 MSG created");
 					
-					// 3 - Hacer post
 					
 					entity = new StringEntity(msgEncoded, ContentType.APPLICATION_JSON);
 					request.setEntity(entity);
