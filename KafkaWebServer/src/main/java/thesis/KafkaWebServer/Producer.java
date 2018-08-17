@@ -17,12 +17,21 @@ public class Producer {
 		// Getting JMS connection from the server and starting it
 		
 		
-		Connection connection;
+		String QUEUE_NAME = "enterQueue";
+		
 		try {
 			ConnectionFactory factory = new ConnectionFactory();
 			factory.setHost("localhost");
-			connection = factory.newConnection();
+			Connection connection = factory.newConnection();
 			Channel channel = connection.createChannel();
+			
+			channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+			String message = "Hello World!";
+			channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+			System.out.println(" [x] Sent '" + message + "'");
+			
+			channel.close();
+			connection.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
