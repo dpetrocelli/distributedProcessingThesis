@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -57,9 +58,15 @@ public class Worker {
 		     response.append(inputLine);
 		   } in.close();
 		   //print in String
-		   System.out.println(response.toString());
-		   JsonObject myresponse = new JsonObject();
-		   System.out.println(myresponse.get(response.toString()));
+		   String msgNotEncoded = response.toString();
+		   JsonUtility jsonUt = new JsonUtility();
+			jsonUt.setType("Message");
+			Message msgRearmed = (Message) jsonUt.fromJson(msgNotEncoded);
+			//System.err.println("RESP: "+msgRearmed.name);
+			try (FileOutputStream fos = new FileOutputStream("D:\\DownloadFromBrowser\\mysalida.mp4")) {
+				   fos.write(msgRearmed.data);
+				   //fos.close(); There is no more need for this line since you had created the instance of "fos" inside the try. And this will automatically close the OutputStream
+				}
 		   
 			
 			}

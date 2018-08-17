@@ -51,7 +51,7 @@ String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
 		String params;
 		String base64Data;
 		
-		for (int i=0; i<1; i++) {
+		for (int i=0; i<chunks; i++) {
 				output = outputPath+"_part_"+i+".mp4";
 				splittedFile = this.splitVideoFile (i, videoPath, FFMpegBasePath, chunkDuration, output);
 				params = "ffmpeg -loglevel quiet -y -i "+videoPath+" -s 320x180 -aspect 16:9 -c:v libx264 -g 50 -b:v 220k -profile:v baseline -level 3.0 -r 15 -preset ultrafast -threads 0 -c:a aac -strict experimental -b:a 64k -ar 44100 -ac 2 "+videoPath+"_part_"+i+".mp4";

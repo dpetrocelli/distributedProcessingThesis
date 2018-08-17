@@ -57,11 +57,14 @@ public class DistributedRestController {
 	@RequestMapping(value = "/getJob", method = RequestMethod.GET)
 	  public String getJob () {
 		GetResponse data = null;
+		byte[] responseByte = null;
 		String response = null;
 		try {
 			data = this.enterChannel.basicGet(this.enterQueue, true);
-			response = data.getBody().toString();
-			System.err.println("RESPO: "+response);
+			responseByte = data.getBody();
+			response = new String(responseByte, "UTF-8");
+			
+			//System.err.println("RESPO: "+response);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
