@@ -47,7 +47,7 @@ public class testClient {
 		HttpPost request = new HttpPost("http://localhost:8080/uploadChunk");
 		HttpResponse response; 
 		String params;
-		
+		String base64Data;
 		
 		for (int i=0; i<1; i++) {
 				output = outputPath+"_part_"+i+".mp4";
@@ -58,10 +58,11 @@ public class testClient {
 				// 2 - Encode to base64 video.
 				try {
 					data = Files.readAllBytes(new File(output).toPath());
-					msg = new Message(output, i, (chunks+1), data, params);
+					base64Data = new String(data);
+					msg = new Message(output, i, (chunks+1), base64Data, params);
 					jsonUt.setObject(msg);
 					msgEncoded = jsonUt.toJson();
-					//System.out.println(msgEncoded);
+					System.out.println(msgEncoded);
 					System.out.println(output + " String Base64 MSG created");
 					
 					// 3 - Hacer post
@@ -82,7 +83,7 @@ public class testClient {
 				    }
 			        response = httpClient.execute(request);
 			        System.out.println(response.getStatusLine().getStatusCode());
-					
+			
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

@@ -4,13 +4,13 @@ public class Message {
 	String name;
 	int part;
 	int qParts;
-	byte[] data;
+	String data;
 	String paramsEncoding;
 	
 	
 	
 	
-	public Message(String name, int part, int qParts, byte[] data, String paramsEncoding) {
+	public Message(String name, int part, int qParts, String data, String paramsEncoding) {
 		super();
 		this.name = name;
 		this.part = part;
@@ -40,10 +40,10 @@ public class Message {
 	public void setqParts(int qParts) {
 		this.qParts = qParts;
 	}
-	public byte[] getData() {
+	public String getData() {
 		return data;
 	}
-	public void setData(byte[] data) {
+	public void setData(String data) {
 		this.data = data;
 	}
 	public String getParamsEncoding() {

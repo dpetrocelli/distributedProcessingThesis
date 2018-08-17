@@ -1,6 +1,26 @@
 package thesis.KafkaWebServer;
 
 
+import java.util.Collections;
+import java.util.Properties;
+
+
+import javax.jms.ConnectionFactory;
+import javax.jms.DeliveryMode;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.broker.Connection;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -14,26 +34,10 @@ public class KafkaWebServerApplication {
 
 	public static void main(String[] args) throws InterruptedException {
 		
-			try {
-				
-				KafkaInitiateServerAndConf ktc = new KafkaInitiateServerAndConf("localhost", "D:\\Docs\\Thesis2018\\libraries\\kafka\\kafka_2.12-2.0.0");
-				ktc.StartZookeper();
-				Thread.sleep(10000);
-				ktc.StartKafka();
-				Thread.sleep(5000);
-				ktc.CreateTopic("localhost", "2181", "1", "10", "testDavid3");
-				
-				
-				//host, port, replicatorfactor, partitions, name
-				//ktc.CreateTopic("localhost", "2181", "1", "10", "testDavid");
-				
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			Thread.sleep(5000);
-			
 		
+		  // Create a ConnectionFactory
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
+        
 		SpringApplication.run(KafkaWebServerApplication.class, args);
 	}
 }
