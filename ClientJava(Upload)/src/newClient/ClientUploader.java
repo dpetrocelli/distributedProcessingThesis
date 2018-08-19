@@ -17,19 +17,28 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
+import ClientSide.Client;
 
 
 
-public class clientUploader {
 
-	public clientUploader () {
-String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
+public class ClientUploader {
+
+	public ClientUploader () {
 		
-		String videoPath = "D:\\DownloadFromBrowser\\video.mp4";
-		String outputPath = "D:\\DownloadFromBrowser\\output";
+		String FFMpegBasePath = "D:\\docs\\Thesis2018\\distributedProcessingThesis\\libraries\\ffmpeg\\bin\\";
+		int id = 1;
+		String videoPath = "D:\\saveDownload\\videos\\video.mp4";
+		/* FILE PATH TO QUEUE IS: 
+		 * u -> user
+		 * id -> integer name
+		 * name -> video name splitting extension
+		 * FINALLY -> u1_video (for this example)
+		 */
+		String fileName = "u1_video";
+		
+		
+		String outputPath = "D:\\saveDownload\\videos\\output";
 		int chunkDuration = 5; // IN SECS
 		
 		// 2 - Obtain Video Duration
@@ -38,6 +47,12 @@ String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
 		// 3 -  Obtain numberOfChunks
 		int chunks = (int) (videoDuration/chunkDuration);
 		
+		ClientDownloader cd = new ClientDownloader(fileName, (chunks+1));
+			
+		Thread cdThread = new Thread(cd);
+		cdThread.start();
+		
+		/*
 		String splittedFile = "";
 		String output; 
 		byte[] data;
@@ -46,12 +61,13 @@ String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
 		String msgEncoded;
 		StringEntity entity;
 		HttpClient httpClient = HttpClientBuilder.create().build();
-		HttpPost request = new HttpPost("http://localhost:8080/uploadChunk");
+		HttpPost request = new HttpPost("http://localhost:8080/uploadChunk?name="+fileName);
+		
 		HttpResponse response; 
 		String params;
 		String base64Data;
 		
-		for (int i=0; i<chunks; i++) {
+		for (int i=0; i<2; i++) {
 				output = outputPath+"_part_"+i+".mp4";
 				splittedFile = this.splitVideoFile (i, videoPath, FFMpegBasePath, chunkDuration, output);
 				params = "ffmpeg -loglevel quiet -y -i "+videoPath+" -s 320x180 -aspect 16:9 -c:v libx264 -g 50 -b:v 220k -profile:v baseline -level 3.0 -r 15 -preset ultrafast -threads 0 -c:a aac -strict experimental -b:a 64k -ar 44100 -ac 2 "+videoPath+"_part_"+i+".mp4";
@@ -62,7 +78,7 @@ String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
 				
 				try {
 					data = Files.readAllBytes(new File(output).toPath());
-					msg = new Message(output, i, (chunks+1), data, params);
+					msg = new Message(fileName, output, i, (chunks+1), data, params);
 					jsonUt.setObject(msg);
 					msgEncoded = jsonUt.toJson();
 					
@@ -70,7 +86,7 @@ String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
 					entity = new StringEntity(msgEncoded, ContentType.APPLICATION_JSON);
 					request.setEntity(entity);
 					request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-
+					
 					try (CloseableHttpResponse httpResponse = (CloseableHttpResponse) httpClient.execute(request)) {
 				        String content = EntityUtils.toString(httpResponse.getEntity());
 				 
@@ -87,9 +103,12 @@ String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+					// TODO Auto-generated catch block
+					
 				}
 				
 			}
+		*/
 		}
 			
 	private String splitVideoFile(int part, String videoPath, String FFMpegBasePath, int chunkStep, String outputName) {
@@ -114,8 +133,10 @@ String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
 
 
 	private String errorStream (String cmdString) throws IOException{
-		String[] commandList = {"powershell.exe", cmdString};
-		Process powerShellProcess = Runtime.getRuntime().exec(commandList);
+		//String[] commandList = {"powershell.exe", cmdString};
+		//String[] commandList = {"cmd.exe", "/c", cmdString};
+		String task = cmdString;
+		Process powerShellProcess = Runtime.getRuntime().exec(task);
 		
 		BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream()));
 		String line2;
@@ -151,7 +172,7 @@ String FFMpegBasePath = "D:\\Docs\\Thesis2018\\libraries\\ffmpeg\\bin\\";
 	}
 	
 	public static void main(String[] args) {
-		clientUploader cu = new clientUploader();
+		ClientUploader cu = new ClientUploader();
 
 	}
 

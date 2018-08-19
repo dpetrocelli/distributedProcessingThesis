@@ -1,6 +1,9 @@
+package Worker;
 
 
 import com.google.gson.Gson;
+
+import newClient.Message;
 
 public class JsonUtility {
 	

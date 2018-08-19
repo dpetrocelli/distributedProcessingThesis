@@ -1,18 +1,29 @@
 package newClient;
 
 public class Message {
+	String userAndQueueName;
 	String name;
 	int part;
 	int qParts;
 	//String data;
 	byte[] data;
+	public String getUserAndQueueName() {
+		return userAndQueueName;
+	}
+
+
+
+	public void setUserAndQueueName(String userAndQueueName) {
+		this.userAndQueueName = userAndQueueName;
+	}
 	String paramsEncoding;
 	
 	
 	
 	
-	public Message(String name, int part, int qParts, byte[] data, String paramsEncoding) {
+	public Message(String originalName, String name, int part, int qParts, byte[] data, String paramsEncoding) {
 		super();
+		this.userAndQueueName = originalName;
 		this.name = name;
 		this.part = part;
 		this.qParts = qParts;
@@ -54,6 +65,6 @@ public class Message {
 		this.paramsEncoding = paramsEncoding;
 	}
 	
-	
+
 
 }
