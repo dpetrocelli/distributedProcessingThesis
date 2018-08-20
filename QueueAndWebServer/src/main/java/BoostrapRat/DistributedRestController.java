@@ -31,7 +31,9 @@ public class DistributedRestController {
 	public DistributedRestController () {
 		// CREATE THE CONSTRUCTOR
 		this.factory = new ConnectionFactory();
-		this.factory.setHost("localhost");
+		this.factory.setHost("192.168.0.20");
+		this.factory.setUsername("admin");
+		this.factory.setPassword("admin");
 		try {
 			// connection and Channels
 			this.enterConnection = this.factory.newConnection();
@@ -72,7 +74,7 @@ public class DistributedRestController {
 			}
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.err.println(" the queue hasn't been created yet");
 			
 		}
 		

@@ -56,12 +56,12 @@ public class Worker {
 			 * 6. create POST request to queue identify by String userAndQueueName
 			 * All done.
 			 */
-		
+			String ipSpringServer = "192.168.0.20";
 			while (true) {
 				
 				System.out.println(" STEP 0 -  Obtaining Job");
 				// STEP 1 - Obtain Job
-				String url = "http://localhost:8080/getJob";
+				String url = "http://"+ipSpringServer+":8080/getJob";
 				URL obj = new URL(url);
 				HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 				int responseCode = con.getResponseCode();

@@ -17,14 +17,19 @@ public class ClientDownloader implements Runnable{
 	}
 	@Override
 	public void run() {
-		
+		try {
+			Thread.sleep(100000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		System.out.println("Client Downloader finished Jobs started");
 		int i = 0;
-		
+		String ipSpringServer = "192.168.0.20";
 		while (i<=this.totalParts) {
 			try {
 				
-				String url = "http://localhost:8080/getEndTasks?name="+this.fileName;
+				String url = "http://"+ipSpringServer+":8080/getEndTasks?name="+this.fileName;
 				URL obj = new URL(url);
 				HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 				int responseCode = con.getResponseCode();
@@ -46,11 +51,12 @@ public class ClientDownloader implements Runnable{
 					try (FileOutputStream fos = new FileOutputStream("c:\\mysalida"+msgRearmed.getPart()+".mp4")) {
 					   fos.write(msgRearmed.data);
 					}
+					i+=1;
 				}catch (Exception e) {
 					System.err.println("NO INFO");
 				}
 				
-				i+=1;
+				
 				
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
