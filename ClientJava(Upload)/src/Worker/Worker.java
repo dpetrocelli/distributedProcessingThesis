@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -115,33 +117,42 @@ public class Worker {
 					
 					System.out.println(" STEP 6 -  POST (push) to userQueueFile ");
 					
-					StringEntity entity;
-					HttpClient httpClient = HttpClientBuilder.create().build();
-					HttpPost request = new HttpPost("http://localhost:8080/uploadFinishedJob?name="+msgRearmed.getUserAndQueueName());			
-					HttpResponse result; 
 					
+					String request = "http://localhost:8080/uploadFinishedJob?name="+msgRearmed.getUserAndQueueName();			
+					
+					URL myurl = new URL(request);
+		            con = (HttpURLConnection) myurl.openConnection();
+
+		            con.setDoOutput(true);
+		            con.setRequestMethod("POST");
+		            con.setRequestProperty("User-Agent", "Java client");
+		            con.setRequestProperty("Content-Type", "application/json");
+		            
 					byte[] dataFiltered = Files.readAllBytes(new File(realOutput).toPath());
 					Message msgResponse = new Message(null, realOutput, msgRearmed.getPart(), msgRearmed.getqParts(), dataFiltered, params);
 					jsonUt.setObject(msgResponse);
 					msgEncoded = jsonUt.toJson();
-					
-					
-					entity = new StringEntity(msgEncoded, ContentType.APPLICATION_JSON);
-					request.setEntity(entity);
-					request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+					 try (PrintWriter pw = new PrintWriter (new OutputStreamWriter (con.getOutputStream()))) {
+			                
+							pw.write(msgEncoded);
+			            }
 
-					try (CloseableHttpResponse httpResponse = (CloseableHttpResponse) httpClient.execute(request)) {
-				        String content = EntityUtils.toString(httpResponse.getEntity());
-				 
-				        int statusCode = httpResponse.getStatusLine().getStatusCode();
-				        System.out.println("statusCode = " + statusCode);
-				        //System.out.println("content = " + content);
-				    } catch (IOException e) {
-				        //handle exception
-				        e.printStackTrace();
-				    }
-			        result = httpClient.execute(request);
-			        System.out.println(result.getStatusLine().getStatusCode());
+			            StringBuilder content;
+
+			            try (BufferedReader in1 = new BufferedReader(
+			                    new InputStreamReader(con.getInputStream()))) {
+
+			                String line;
+			                content = new StringBuilder();
+
+			                while ((line = in1.readLine()) != null) {
+			                    content.append(line);
+			                    content.append(System.lineSeparator());
+			                }
+			            }
+
+			            System.out.println(content.toString());
+					
 				}catch (Exception e) {
 					System.err.println(" NOT A VALID MESSAGE (Empty Queue)");
 				}

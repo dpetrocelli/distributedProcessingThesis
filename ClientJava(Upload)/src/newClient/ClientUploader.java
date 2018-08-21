@@ -1,9 +1,15 @@
 package newClient;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.concurrent.TimeoutException;
 
@@ -28,7 +34,7 @@ public class ClientUploader {
 		
 		String FFMpegBasePath = "D:\\docs\\Thesis2018\\distributedProcessingThesis\\libraries\\ffmpeg\\bin\\";
 		int id = 1;
-		String videoPath = "D:\\saveDownload\\videos\\video.mp4";
+		String videoPath = "D:\\saveDownload\\videos\\video3.mp4";
 		/* FILE PATH TO QUEUE IS: 
 		 * u -> user
 		 * id -> integer name
@@ -38,7 +44,8 @@ public class ClientUploader {
 		String fileName = "u1_video";
 		
 		
-		String outputPath = "D:\\saveDownload\\videos\\output";
+		String outputPath = "D:\\saveDownload\\videos\\output\\output";
+		//change then
 		int chunkDuration = 5; // IN SECS
 		
 		// 2 - Obtain Video Duration
@@ -47,7 +54,9 @@ public class ClientUploader {
 		// 3 -  Obtain numberOfChunks
 		int chunks = (int) (videoDuration/chunkDuration);
 		
-		ClientDownloader cd = new ClientDownloader(fileName, (chunks+1));
+		// Only per now chunks , then must be +1
+		//ClientDownloader cd = new ClientDownloader(fileName, (chunks+1));
+		ClientDownloader cd = new ClientDownloader(fileName, (chunks));
 		Thread cdThread = new Thread(cd);
 		cdThread.start();
 		
@@ -61,52 +70,75 @@ public class ClientUploader {
 		StringEntity entity;
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String ipSpringServer = "192.168.0.20";
+		String urlPost = "http://"+ipSpringServer+":8080/uploadChunk?name="+fileName;
+		HttpURLConnection con = null;
 		HttpPost request = new HttpPost("http://"+ipSpringServer+":8080/uploadChunk?name="+fileName);
 		
 		HttpResponse response; 
 		String params;
 		String base64Data;
 		
-		for (int i=0; i<3; i++) {
-				output = outputPath+"_part_"+i+".mp4";
-				splittedFile = this.splitVideoFile (i, videoPath, FFMpegBasePath, chunkDuration, output);
-				params = "ffmpeg -loglevel quiet -y -i "+videoPath+" -s 320x180 -aspect 16:9 -c:v libx264 -g 50 -b:v 220k -profile:v baseline -level 3.0 -r 15 -preset ultrafast -threads 0 -c:a aac -strict experimental -b:a 64k -ar 44100 -ac 2 "+videoPath+"_part_"+i+".mp4";
-				// Once splitted, create Message and save in Queue
-				// 1 - Read video file to byte
-				// 2 - Encode to base64 video.
+		for (int i=0; i<chunks; i++) {
 				
-				
+				  
 				try {
+					output = outputPath+"_part_"+i+".mp4";
+					splittedFile = this.splitVideoFile (i, videoPath, FFMpegBasePath, chunkDuration, output);
+					params = "ffmpeg -loglevel quiet -y -i "+videoPath+" -s 320x180 -aspect 16:9 -c:v libx264 -g 50 -b:v 220k -profile:v baseline -level 3.0 -r 15 -preset ultrafast -threads 0 -c:a aac -strict experimental -b:a 64k -ar 44100 -ac 2 "+videoPath+"_part_"+i+".mp4";
+					// Once splitted, create Message and save in Queue
+					// 1 - Read video file to byte
+					// 2 - Encode to base64 video.
+		            URL myurl = new URL(urlPost);
+		            con = (HttpURLConnection) myurl.openConnection();
+
+		            con.setDoOutput(true);
+		            con.setRequestMethod("POST");
+		            con.setRequestProperty("User-Agent", "Java client");
+		            con.setRequestProperty("Content-Type", "application/json");
+
 					data = Files.readAllBytes(new File(output).toPath());
 					msg = new Message(fileName, output, i, (chunks+1), data, params);
 					jsonUt.setObject(msg);
 					msgEncoded = jsonUt.toJson();
 					
-					
-					entity = new StringEntity(msgEncoded, ContentType.APPLICATION_JSON);
-					request.setEntity(entity);
-					request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-					
-					try (CloseableHttpResponse httpResponse = (CloseableHttpResponse) httpClient.execute(request)) {
-				        String content = EntityUtils.toString(httpResponse.getEntity());
-				 
-				        int statusCode = httpResponse.getStatusLine().getStatusCode();
-				        System.out.println("statusCode = " + statusCode);
-				        //System.out.println("content = " + content);
-				    } catch (IOException e) {
-				        //handle exception
-				        e.printStackTrace();
-				    }
-			        response = httpClient.execute(request);
-			        System.out.println(response.getStatusLine().getStatusCode());
-					
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					// TODO Auto-generated catch block
-					
-				}
+			            try (PrintWriter pw = new PrintWriter (new OutputStreamWriter (con.getOutputStream()))) {
+			                
+							pw.write(msgEncoded);
+			            }
+
+			            StringBuilder content;
+
+			            try (BufferedReader in = new BufferedReader(
+			                    new InputStreamReader(con.getInputStream()))) {
+
+			                String line;
+			                content = new StringBuilder();
+
+			                while ((line = in.readLine()) != null) {
+			                    content.append(line);
+			                    content.append(System.lineSeparator());
+			                }
+			            }
+
+			            //System.out.println(content.toString());
+
+			        } catch (MalformedURLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} finally {
+			            
+			            con.disconnect();
+			        }
 				
+			}
+			try {
+				cdThread.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		
 		}
@@ -114,14 +146,13 @@ public class ClientUploader {
 	private String splitVideoFile(int part, String videoPath, String FFMpegBasePath, int chunkStep, String outputName) {
 		
 		String params = FFMpegBasePath+"ffmpeg.exe -y -i "+videoPath+" -ss "+(part*chunkStep)+" -t "+chunkStep+ " "+outputName;
-		System.out.println(params);
+		//System.out.println(params);
 		
 		try {
-			//Process powerShellProcess = Runtime.getRuntime().exec(params);
+			
 			this.errorStream(params);
 			
-  			// once if finished, if possible to add to list of tasks
-			//Task taskStruct = new Task("1", "", new Video(videoName+"_part_"+index+".mp4"), "toProcess", videoName+"_part_"+index+".mp4");
+  			
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

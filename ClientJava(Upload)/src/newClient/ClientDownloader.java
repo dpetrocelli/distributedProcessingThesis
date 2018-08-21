@@ -11,14 +11,16 @@ import java.net.URL;
 public class ClientDownloader implements Runnable{
 	int totalParts; 
 	String fileName;
+	int id;
 	public ClientDownloader (String fileName, int totalParts) {
 		this.fileName = fileName;
 		this.totalParts = totalParts;
 	}
 	@Override
 	public void run() {
+		this.id = (int) Thread.currentThread().getId();
 		try {
-			Thread.sleep(100000);
+			Thread.sleep(10000);
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -26,15 +28,17 @@ public class ClientDownloader implements Runnable{
 		System.out.println("Client Downloader finished Jobs started");
 		int i = 0;
 		String ipSpringServer = "192.168.0.20";
-		while (i<=this.totalParts) {
+		String outputBasePath = "C:\\compressed_"+this.id+"_part_";
+		while (true) {
 			try {
+				
 				
 				String url = "http://"+ipSpringServer+":8080/getEndTasks?name="+this.fileName;
 				URL obj = new URL(url);
 				HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 				int responseCode = con.getResponseCode();
-				System.out.println("\nSending 'GET' request to URL : " + url);
-				System.out.println("Response Code : " + responseCode);
+				//System.out.println("\nSending 'GET' request to URL : " + url);
+				//System.out.println("Response Code : " + responseCode);
 				BufferedReader in =new BufferedReader(new InputStreamReader(con.getInputStream()));
 				String inputLine;
 				StringBuffer response = new StringBuffer();
@@ -47,13 +51,16 @@ public class ClientDownloader implements Runnable{
 					JsonUtility jsonUt = new JsonUtility();
 					jsonUt.setType("Message");
 					Message msgRearmed = (Message) jsonUt.fromJson(msgNotEncoded);
-					//System.err.println("RESP: "+msgRearmed.name);
-					try (FileOutputStream fos = new FileOutputStream("c:\\mysalida"+msgRearmed.getPart()+".mp4")) {
+					System.err.println("OBTAINED: "+msgRearmed.name);
+					try (FileOutputStream fos = new FileOutputStream(outputBasePath+msgRearmed.getPart()+".mp4")) {
 					   fos.write(msgRearmed.data);
 					}
-					i+=1;
+					i++;
+					System.out.println("i="+i+" / TOTAL: "+this.totalParts);
+					if (i==this.totalParts) break;
 				}catch (Exception e) {
 					System.err.println("NO INFO");
+					
 				}
 				
 				
@@ -72,7 +79,35 @@ public class ClientDownloader implements Runnable{
 				e.printStackTrace();
 			}
 		}
+		// Once i have finished, i need to rearm the complete file compressed
+		String concatenate = "ffmpeg.exe";
+		for (int k=0; k<this.totalParts; k++) {
+			concatenate+=" -i "+outputBasePath+k+".mp4";
+		}
+		concatenate+=" -filter_complex concat=n="+this.totalParts+":v=1:a=1 -y C:\\laconchadtumadre.mp4";
+		this.concatenateParts(concatenate);
 		
+		
+	}
+	
+	private void concatenateParts (String command) {
+			String baseFFMpeg = "D:\\docs\\Thesis2018\\distributedProcessingThesis\\libraries\\ffmpeg\\bin\\";
+			String task = baseFFMpeg+command;
+			System.err.println("TASK: "+task);
+			Process powerShellProcess;
+			try {
+				powerShellProcess = Runtime.getRuntime().exec(task);
+				BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream()));
+				String line2;
+				while ((line2 = stderr.readLine()) != null) {
+					//System.out.println(line2);
+				}
+				stderr.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 	}
 
 }
