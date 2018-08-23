@@ -3,38 +3,16 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
 import java.nio.file.Files;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
-
-import com.google.gson.JsonObject;
+import java.util.regex.Pattern;
 
 import newClient.Message;
-
-
 
 public class Worker {
 
@@ -58,12 +36,22 @@ public class Worker {
 			 * 6. create POST request to queue identify by String userAndQueueName
 			 * All done.
 			 */
-			String ipSpringServer = "192.168.0.20";
+			String workerName;
+			try {
+				InetAddress addr = InetAddress.getLocalHost();
+				workerName = addr.getHostName();
+			}catch (Exception e) {
+				workerName = "noName";
+			}
+			
+			String ipSpringServer = "10.2.3.67";
+			int threadId = (int) Thread.currentThread().getId();
+			
 			while (true) {
 				
 				System.out.println(" STEP 0 -  Obtaining Job");
 				// STEP 1 - Obtain Job
-				String url = "http://"+ipSpringServer+":8080/getJob";
+				String url = "http://"+ipSpringServer+":8080/getJob?name="+workerName;
 				URL obj = new URL(url);
 				HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 				int responseCode = con.getResponseCode();
@@ -87,7 +75,15 @@ public class Worker {
 					Message msgRearmed = (Message) jsonUt.fromJson(msgNotEncoded);
 					System.out.println(" STEP 2 -  Msg rearmed");
 					// STEP 3 - Download byte[] to file local disk
-					String localPath = "C:\\fileToApplyFilter.mp4";
+					String originalName = "C:\\DTP\\video\\splittedVideo\\OriginalVideo_splitted_part_0.mp4";
+					String[] parts = msgRearmed.getName().split(Pattern.quote("\\"));
+					String[] megaparts = (parts[(parts.length-1)].split(Pattern.quote("_")));
+					String saveVideoName = megaparts[0];
+					String numberOfPart = megaparts[(megaparts.length-1)].split(Pattern.quote("."))[0];
+					saveVideoName+="_"+numberOfPart;
+					
+					String localPath = "C:\\DTP\\video\\fileToApplyFilter\\FTAF_"+saveVideoName+".mp4";
+					System.out.println("LOCAL PATH"+localPath);
 					try (FileOutputStream fos = new FileOutputStream(localPath)) {
 						   fos.write(msgRearmed.getData());
 						   //fos.close(); There is no more need for this line since you had created the instance of "fos" inside the try. And this will automatically close the OutputStream
@@ -95,9 +91,11 @@ public class Worker {
 					System.out.println(" STEP 3 -  binary File Saved");
 					// STEP 4 - Apply Filter
 					
-					String FFMpegBasePath = "D:\\docs\\Thesis2018\\distributedProcessingThesis\\libraries\\ffmpeg\\bin\\";
-					String outputPath = "C:\\output";
+					String FFMpegBasePath = "C:\\DTP\\ffmpeg\\bin\\";
+					String outputPath = "C:\\DTP\\video\\compressedInWorker\\"+saveVideoName+"_WKCOMP";
+					System.out.println("VIDEO NAME:"+outputPath);
 					String realOutput = outputPath+"_part_"+msgRearmed.getPart()+".mp4";
+					System.out.println("VIDEO NAME:"+realOutput);
 					String params = FFMpegBasePath+"ffmpeg.exe -loglevel quiet -y -i "+localPath+" -s 320x180 -aspect 16:9 -c:v libx264 -g 50 -b:v 220k -profile:v baseline -level 3.0 -r 15 -preset ultrafast -threads 0 -c:a aac -strict experimental -b:a 64k -ar 44100 -ac 2 "+realOutput;
 					Process powerShellProcess = Runtime.getRuntime().exec(params);
 					
@@ -118,7 +116,7 @@ public class Worker {
 					System.out.println(" STEP 6 -  POST (push) to userQueueFile ");
 					
 					
-					String request = "http://localhost:8080/uploadFinishedJob?name="+msgRearmed.getUserAndQueueName();			
+					String request = "http://"+ipSpringServer+":8080/uploadFinishedJob?name="+msgRearmed.getUserAndQueueName();			
 					
 					URL myurl = new URL(request);
 		            con = (HttpURLConnection) myurl.openConnection();
@@ -154,7 +152,7 @@ public class Worker {
 			            System.out.println(content.toString());
 					
 				}catch (Exception e) {
-					System.err.println(" NOT A VALID MESSAGE (Empty Queue)");
+					System.err.println(" Empty Queue ");
 				}
 				
 		        
@@ -165,7 +163,6 @@ public class Worker {
 					e.printStackTrace();
 				}
 			}
-			
 			
 		}
 			

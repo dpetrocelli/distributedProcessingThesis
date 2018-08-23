@@ -27,8 +27,8 @@ public class ClientDownloader implements Runnable{
 		}
 		System.out.println("Client Downloader finished Jobs started");
 		int i = 0;
-		String ipSpringServer = "192.168.0.20";
-		String outputBasePath = "C:\\compressed_"+this.id+"_part_";
+		String ipSpringServer = "10.2.3.67";
+		String outputBasePath = "C:\\DTP\\video\\returnedCompressed\\compressed_"+this.id+"_part_";
 		while (true) {
 			try {
 				
@@ -84,14 +84,14 @@ public class ClientDownloader implements Runnable{
 		for (int k=0; k<this.totalParts; k++) {
 			concatenate+=" -i "+outputBasePath+k+".mp4";
 		}
-		concatenate+=" -filter_complex concat=n="+this.totalParts+":v=1:a=1 -y C:\\laconchadtumadre.mp4";
+		concatenate+=" -filter_complex concat=n="+this.totalParts+":v=1:a=1 -y C:\\DTP\\video\\resultJoined\\compressedAndJoined.mp4";
 		this.concatenateParts(concatenate);
 		
 		
 	}
 	
 	private void concatenateParts (String command) {
-			String baseFFMpeg = "D:\\docs\\Thesis2018\\distributedProcessingThesis\\libraries\\ffmpeg\\bin\\";
+			String baseFFMpeg = "C:\\DTP\\ffmpeg\\bin\\";
 			String task = baseFFMpeg+command;
 			System.err.println("TASK: "+task);
 			Process powerShellProcess;

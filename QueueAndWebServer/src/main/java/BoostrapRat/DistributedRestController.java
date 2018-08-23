@@ -1,8 +1,13 @@
 package BoostrapRat;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Pattern;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,11 +32,12 @@ public class DistributedRestController {
 	Channel enterChannel;
 	Connection pendantConnection;
 	Channel pendantChannel;
+	HashMap<String,ArrayList<String>> filterParameters;
 	
 	public DistributedRestController () {
 		// CREATE THE CONSTRUCTOR
 		this.factory = new ConnectionFactory();
-		this.factory.setHost("192.168.0.20");
+		this.factory.setHost("10.2.3.67");
 		this.factory.setUsername("admin");
 		this.factory.setPassword("admin");
 		try {
@@ -51,6 +57,9 @@ public class DistributedRestController {
 			e.printStackTrace();
 		}
 		
+		// Obtain parameter list (from configuration file)
+		filterParameters = new HashMap<String,ArrayList<String>>();
+		this.readFromFile (filterParameters, "src/videoParameters");
 		
 	}
 	
@@ -85,13 +94,17 @@ public class DistributedRestController {
 	
 	// Client -> Publish new Task
 	@RequestMapping(value = "/uploadChunk", method = RequestMethod.POST)
-	  public String publishNewClientTask(@RequestBody String msg, @RequestParam("name") String name) { 	
+	  public String publishNewClientTask(@RequestBody String msg, @RequestParam("name") String name, @RequestParam("queues") String queuesList) { 	
 		  	// actions to do
-		  	// 1. save resource in enterQueue;
-		  	// 2. create outputQueue where workers will deploy the answers (1 per each client)
+		  	// STEP 1 - Obtain headers (baseQueueName + List of queues)
+			// STEP 2 - Obtain each filter
+			// STEP 3 - Rearm msg class
+			// STEP 4 - based on filterParameter, replicate msgStructure + parameters for profile in the queue
+			// STEP 5 - Create the finishedTaskQueue where workers will deploy the answers (1 per each queueFile)
 		  	String queueJob = name;
 		  	try {
 				this.enterChannel.queueDeclare(this.enterQueue, false, false, false, null);
+				
 				this.enterChannel.basicPublish("", this.enterQueue, null, msg.getBytes());
 				System.out.println(" MSG: saved " );
 				
@@ -108,8 +121,8 @@ public class DistributedRestController {
 	 
 	// Worker -> Get Task
 	@RequestMapping(value = "/getJob", method = RequestMethod.GET)
-	  public String getJob () {
-		System.err.println("WORKER GETTING JOB");
+	  public String getJob (@RequestParam("name") String name) {
+		System.err.println("WORKER "+name+" IS GETTING JOB");
 		GetResponse data = null;
 		byte[] responseByte = null;
 		String response = null;
@@ -155,6 +168,44 @@ public class DistributedRestController {
 	  }
 	 
    
+	
+	private void readFromFile(HashMap<String,ArrayList<String>> filterParameters, String file) {
+		// TODO Auto-generated method stub
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(file));
+			ArrayList<String> parameters;
+			
+		    String line = br.readLine();
+
+		    while (line != null) {
+		        String[] partsParameters = line.split(Pattern.quote("|"));
+		        parameters = new ArrayList<String>();
+		        for (int i=1; i<(partsParameters.length-1); i++) parameters.add(partsParameters[i]);
+		        filterParameters.put(partsParameters[0], parameters);
+		        
+		        // After fullfill line, read next
+		        line = br.readLine();
+		    }
+		   
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+		    try {
+				br.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+		    
+	}
  
   
   
