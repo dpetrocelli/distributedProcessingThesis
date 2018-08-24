@@ -31,14 +31,14 @@ public class ClientUploader {
 		String FFMpegBasePath = "C:\\DTP\\ffmpeg\\bin\\";
 		
 		// STEP 1 - Obtain ID for the activities
-		int id = ThreadLocalRandom.current().nextInt(0, 100000);
+		//int id = ThreadLocalRandom.current().nextInt(0, 100000);
+		int id = 3059;
 		
 		// STEP 2 - Define videoPath (1 per client up to now)
 		String videoPath = "C:\\DTP\\video\\OriginalVideo.mp4";
 		String[] a = videoPath.split(Pattern.quote("\\"));
 		String videoName = (a[(a.length-1)].split(Pattern.quote(".")))[0];
-		
-		
+			
 		
 		// STEP 2.6 - Select filters to apply
 		ArrayList<String> filterSelected = new ArrayList<String>();
@@ -71,11 +71,28 @@ public class ClientUploader {
 		// STEP 7.6 - Obtain list of filters to apply (hd|480|etc) and
 		// STEP 7.7 - Create a downlaoder thread for each filter (queue)
 		
-		String listOfProfilesToapply = null;
+		/*
+		 * STEP 7.8 
+		 * 	- Create queuePollingName for clientDownloader 	
+		 * 	- Create listOfProfilesToApply -> with each profile splitted by "|"
+		 * 		this string will be used in POST REQUEST in "&queues=" params
+		 */
+		
+		// STEP 7.9 - Save threads ClientDownloader and 
+		String listOfProfilesToapply = "";
+		
 		for (int i=0; i<filterSelected.size();i++) {
+			
+			// GET FILTER
 			String filter = filterSelected.get(i);
+			
+			// Construct queuePollingName 
 			String queuePollingName = baseQueueName+"_"+filter;
-			listOfProfilesToapply+=filter+"|";
+			
+			// Construct listOfProfilesToApply
+			listOfProfilesToapply+=filter+"_";
+			
+			// Create downlaoder thread, start it and save in arrayList (for join and not finish main threaD)
 			ClientDownloader cd = new ClientDownloader(queuePollingName, (chunks));
 			Thread cdThread = new Thread(cd);
 			cdThread.start();
@@ -92,13 +109,15 @@ public class ClientUploader {
 		JsonUtility jsonUt = new JsonUtility();
 		String msgEncoded;
 		
-		// STEP 8 - Create HTTP Client request + POST REQUESTER
+		// STEP 8 - Create HTTP Client request + POST REQUESTER (Here use listOfProfilesToapply)
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		String ipSpringServer = "10.2.3.67";
+		
 		// STEP 9 - Define URL based on name (base queue) + profiles (to create specific queue)
 		String urlPost = "http://"+ipSpringServer+":8080/uploadChunk?name="+baseQueueName+"&queues="+listOfProfilesToapply;
+		System.out.println("URL POST: "+urlPost);
 		HttpURLConnection con = null;
-		HttpPost request = new HttpPost("http://"+ipSpringServer+":8080/uploadChunk?name="+baseQueueName);
+		HttpPost request = new HttpPost(urlPost);
 		
 		HttpResponse response; 
 		String params;
@@ -108,16 +127,18 @@ public class ClientUploader {
 		// Then the server will replicate the request in the quantity of part that params filtered received
 		for (int i=0; i<chunks; i++) {
 				
-				  
+	
 				try {
 					output = outputPath+"_part_"+i+".mp4";
+					
+					// STEP 10.1 - Split video file 
 					splittedFile = this.splitVideoFile (i, videoPath, FFMpegBasePath, chunkDuration, output);
 					params = "";
 					//params = "ffmpeg -loglevel quiet -y -i "+videoPath+" -s 320x180 -aspect 16:9 -c:v libx264 -g 50 -b:v 220k -profile:v baseline -level 3.0 -r 15 -preset ultrafast -threads 0 -c:a aac -strict experimental -b:a 64k -ar 44100 -ac 2 "+videoPath+"_part_"+i+".mp4";
-					// Once splitted, create Message and save in Queue
-					// 1 - Read video file to byte
-					// 2 - Encode to base64 video.
-		            URL myurl = new URL(urlPost);
+					
+					// STEP 10.2 - Create urlStructure 
+					
+					URL myurl = new URL(urlPost);
 		            con = (HttpURLConnection) myurl.openConnection();
 
 		            con.setDoOutput(true);
@@ -125,10 +146,19 @@ public class ClientUploader {
 		            con.setRequestProperty("User-Agent", "Java client");
 		            con.setRequestProperty("Content-Type", "application/json");
 
+		            /*
+					 * STEP 10.3
+					 * 	- Once splitted, create Message
+					 *  - The, Read video file and save in a byte[]
+					 *  - Encode to Json .
+					 */
+		            
 					data = Files.readAllBytes(new File(output).toPath());
 					msg = new Message(baseQueueName, output, i, (chunks+1), data, params);
 					jsonUt.setObject(msg);
 					msgEncoded = jsonUt.toJson();
+					
+					// STEP 10.4 - SEND POST REQUEST 
 					
 			            try (PrintWriter pw = new PrintWriter (new OutputStreamWriter (con.getOutputStream()))) {
 			                

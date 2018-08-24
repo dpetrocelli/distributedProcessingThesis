@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rabbitmq.client.AMQP.Queue.DeclareOk;
+
+
+
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -59,7 +62,7 @@ public class DistributedRestController {
 		
 		// Obtain parameter list (from configuration file)
 		filterParameters = new HashMap<String,ArrayList<String>>();
-		this.readFromFile (filterParameters, "src/videoParameters");
+		this.readFromFile (filterParameters, "src/main/java/videoParameters");
 		
 	}
 	
@@ -101,15 +104,41 @@ public class DistributedRestController {
 			// STEP 3 - Rearm msg class
 			// STEP 4 - based on filterParameter, replicate msgStructure + parameters for profile in the queue
 			// STEP 5 - Create the finishedTaskQueue where workers will deploy the answers (1 per each queueFile)
-		  	String queueJob = name;
+		  	
+		  	String finishedSpecificQueue;
+		  	String msgEncoded;
 		  	try {
 				this.enterChannel.queueDeclare(this.enterQueue, false, false, false, null);
 				
-				this.enterChannel.basicPublish("", this.enterQueue, null, msg.getBytes());
-				System.out.println(" MSG: saved " );
+				// STEP 2 - obtain each filter
+				String[] filters = queuesList.split(Pattern.quote("_"));
+				String parameters=null;
 				
-				this.enterChannel.queueDeclare(queueJob, true, false, false, null);
-				System.out.println(" queueJob: "+queueJob+" has been created");
+				// STEP 3 - Rearm MSG
+				JsonUtility jsonUt = new JsonUtility();
+				jsonUt.setType("Message");
+				Message msgRearmed = (Message) jsonUt.fromJson(msg);
+				
+				for (String filter : filters) {
+					// STEP 4.0 - Rearm msg parameters
+					parameters = (this.filterParameters.get(filter)).toString();
+					System.out.println("PARAMS: "+parameters);
+					msgRearmed.setParamsEncoding(parameters);
+					msgRearmed.setName(name+"_"+filter);
+					jsonUt.setObject(msgRearmed);
+					msgEncoded = jsonUt.toJson();
+					// STEP 4.1 - Save in normal queue 
+					this.enterChannel.basicPublish("", this.enterQueue, null, msgEncoded.getBytes());
+					System.out.println(" MSG: saved in enteredQueue" );
+					
+					// STEP 5 - Create (or not) the specific finishedQueue 
+					finishedSpecificQueue=name+"_"+filter;
+					this.enterChannel.queueDeclare(finishedSpecificQueue, true, false, false, null);
+					System.out.println(" queueJob: "+finishedSpecificQueue+" has been created");
+										
+				}
+				
+				
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

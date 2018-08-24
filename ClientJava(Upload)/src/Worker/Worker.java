@@ -73,12 +73,16 @@ public class Worker {
 					
 					// STEP 2 - Rearm Message
 					Message msgRearmed = (Message) jsonUt.fromJson(msgNotEncoded);
+					
+					// STEP 2.5 - Save the queue where i must reply my msg
+					String returnQueue = msgRearmed.getName();
+					
 					System.out.println(" STEP 2 -  Msg rearmed");
 					// STEP 3 - Download byte[] to file local disk
-					String originalName = "C:\\DTP\\video\\splittedVideo\\OriginalVideo_splitted_part_0.mp4";
+					String originalName = "C:\\DTP\\video\\splittedVideo\\"+msgRearmed.getName()+"_splitted_part_0.mp4";
 					String[] parts = msgRearmed.getName().split(Pattern.quote("\\"));
 					String[] megaparts = (parts[(parts.length-1)].split(Pattern.quote("_")));
-					String saveVideoName = megaparts[0];
+					String saveVideoName = megaparts[0]+"_"+megaparts[1];
 					String numberOfPart = megaparts[(megaparts.length-1)].split(Pattern.quote("."))[0];
 					saveVideoName+="_"+numberOfPart;
 					
@@ -89,13 +93,16 @@ public class Worker {
 						   //fos.close(); There is no more need for this line since you had created the instance of "fos" inside the try. And this will automatically close the OutputStream
 					}
 					System.out.println(" STEP 3 -  binary File Saved");
-					// STEP 4 - Apply Filter
+					// STEP 4 - Apply Filter - Organize
 					
 					String FFMpegBasePath = "C:\\DTP\\ffmpeg\\bin\\";
 					String outputPath = "C:\\DTP\\video\\compressedInWorker\\"+saveVideoName+"_WKCOMP";
 					System.out.println("VIDEO NAME:"+outputPath);
 					String realOutput = outputPath+"_part_"+msgRearmed.getPart()+".mp4";
 					System.out.println("VIDEO NAME:"+realOutput);
+					// Obtain parameters from msg
+					String parametersFromMsg = msgRearmed.getParamsEncoding();
+					System.out.println(parametersFromMsg);
 					String params = FFMpegBasePath+"ffmpeg.exe -loglevel quiet -y -i "+localPath+" -s 320x180 -aspect 16:9 -c:v libx264 -g 50 -b:v 220k -profile:v baseline -level 3.0 -r 15 -preset ultrafast -threads 0 -c:a aac -strict experimental -b:a 64k -ar 44100 -ac 2 "+realOutput;
 					Process powerShellProcess = Runtime.getRuntime().exec(params);
 					
@@ -116,7 +123,7 @@ public class Worker {
 					System.out.println(" STEP 6 -  POST (push) to userQueueFile ");
 					
 					
-					String request = "http://"+ipSpringServer+":8080/uploadFinishedJob?name="+msgRearmed.getUserAndQueueName();			
+					String request = "http://"+ipSpringServer+":8080/uploadFinishedJob?name="+returnQueue;			
 					
 					URL myurl = new URL(request);
 		            con = (HttpURLConnection) myurl.openConnection();
@@ -127,7 +134,7 @@ public class Worker {
 		            con.setRequestProperty("Content-Type", "application/json");
 		            
 					byte[] dataFiltered = Files.readAllBytes(new File(realOutput).toPath());
-					Message msgResponse = new Message(null, realOutput, msgRearmed.getPart(), msgRearmed.getqParts(), dataFiltered, params);
+					Message msgResponse = new Message(returnQueue, realOutput, msgRearmed.getPart(), msgRearmed.getqParts(), dataFiltered, params);
 					jsonUt.setObject(msgResponse);
 					msgEncoded = jsonUt.toJson();
 					 try (PrintWriter pw = new PrintWriter (new OutputStreamWriter (con.getOutputStream()))) {
@@ -157,7 +164,7 @@ public class Worker {
 				
 		        
 		        try {
-					Thread.sleep(5000);
+					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

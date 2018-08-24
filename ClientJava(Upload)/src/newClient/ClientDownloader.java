@@ -20,18 +20,23 @@ public class ClientDownloader implements Runnable{
 	public void run() {
 		this.id = (int) Thread.currentThread().getId();
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(20000);
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		
+		// STEP 0 - Define variables
 		System.out.println("Client Downloader finished Jobs started");
 		int i = 0;
 		String ipSpringServer = "10.2.3.67";
 		String outputBasePath = "C:\\DTP\\video\\returnedCompressed\\compressed_"+this.id+"_part_";
+		
+		// STEP 1 - Loop until parts = parameterParts 
 		while (true) {
 			try {
 				
+				// STEP 2 - URL
 				
 				String url = "http://"+ipSpringServer+":8080/getEndTasks?name="+this.fileName;
 				URL obj = new URL(url);
@@ -47,16 +52,23 @@ public class ClientDownloader implements Runnable{
 				} in.close();
 			   
 				try{
+					
+					// STEP 3 - RearmMsg
 					String msgNotEncoded = response.toString();
 					JsonUtility jsonUt = new JsonUtility();
 					jsonUt.setType("Message");
+					
 					Message msgRearmed = (Message) jsonUt.fromJson(msgNotEncoded);
 					System.err.println("OBTAINED: "+msgRearmed.name);
+					
+					// STEP 4 - Save compressed video in file
 					try (FileOutputStream fos = new FileOutputStream(outputBasePath+msgRearmed.getPart()+".mp4")) {
 					   fos.write(msgRearmed.data);
 					}
 					i++;
 					System.out.println("i="+i+" / TOTAL: "+this.totalParts);
+					
+					// STEP 5 - If parts completed, break 
 					if (i==this.totalParts) break;
 				}catch (Exception e) {
 					System.err.println("NO INFO");
@@ -79,12 +91,12 @@ public class ClientDownloader implements Runnable{
 				e.printStackTrace();
 			}
 		}
-		// Once i have finished, i need to rearm the complete file compressed
+		// STEP 6 - once i've completed parts, i need to rearm the complete file compressed
 		String concatenate = "ffmpeg.exe";
 		for (int k=0; k<this.totalParts; k++) {
 			concatenate+=" -i "+outputBasePath+k+".mp4";
 		}
-		concatenate+=" -filter_complex concat=n="+this.totalParts+":v=1:a=1 -y C:\\DTP\\video\\resultJoined\\compressedAndJoined.mp4";
+		concatenate+=" -filter_complex concat=n="+this.totalParts+":v=1:a=1 -y C:\\DTP\\video\\resultJoined\\"+this.fileName+"_CAJ.mp4";
 		this.concatenateParts(concatenate);
 		
 		

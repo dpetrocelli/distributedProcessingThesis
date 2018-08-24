@@ -7,20 +7,8 @@ public class Message {
 	int qParts;
 	//String data;
 	byte[] data;
-	public String getUserAndQueueName() {
-		return userAndQueueName;
-	}
-
-
-
-	public void setUserAndQueueName(String userAndQueueName) {
-		this.userAndQueueName = userAndQueueName;
-	}
 	String paramsEncoding;
-	
-	
-	
-	
+		
 	public Message(String originalName, String name, int part, int qParts, byte[] data, String paramsEncoding) {
 		super();
 		this.userAndQueueName = originalName;
@@ -33,7 +21,13 @@ public class Message {
 	}
 	
 	
+	public String getUserAndQueueName() {
+		return userAndQueueName;
+	}
 
+	public void setUserAndQueueName(String userAndQueueName) {
+		this.userAndQueueName = userAndQueueName;
+	}
 	public String getName() {
 		return name;
 	}
