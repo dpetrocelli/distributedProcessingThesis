@@ -119,6 +119,7 @@ public class DistributedRestController {
 				jsonUt.setType("Message");
 				Message msgRearmed = (Message) jsonUt.fromJson(msg);
 				
+				// FOR EACH FILTER -> take params from the arraylist and put in msg structure
 				for (String filter : filters) {
 					// STEP 4.0 - Rearm msg parameters
 					parameters = (this.filterParameters.get(filter)).toString();

@@ -102,8 +102,11 @@ public class Worker {
 					System.out.println("VIDEO NAME:"+realOutput);
 					// Obtain parameters from msg
 					String parametersFromMsg = msgRearmed.getParamsEncoding();
-					System.out.println(parametersFromMsg);
-					String params = FFMpegBasePath+"ffmpeg.exe -loglevel quiet -y -i "+localPath+" -s 320x180 -aspect 16:9 -c:v libx264 -g 50 -b:v 220k -profile:v baseline -level 3.0 -r 15 -preset ultrafast -threads 0 -c:a aac -strict experimental -b:a 64k -ar 44100 -ac 2 "+realOutput;
+					parametersFromMsg = parametersFromMsg.substring(1, (parametersFromMsg.length()-2));
+					String[] paramsPart = parametersFromMsg.split(Pattern.quote(","));
+					String params = FFMpegBasePath+"ffmpeg.exe -loglevel quiet -y -i "+localPath+" -s "+paramsPart[1]+" -aspect 16:9 -c:v "+paramsPart[2]+" -g 50 -b:v "+paramsPart[3]+"k -profile:v "+paramsPart[0]+" -level "+paramsPart[4]+" -r "+paramsPart[5]+" -preset "+paramsPart[6]+" -threads 0 -c:a aac -strict experimental -b:a "+paramsPart[11]+"k -ar "+paramsPart[12]+" -ac "+paramsPart[13]+" "+realOutput;
+					System.out.println(params);
+					Thread.sleep(1000000);
 					Process powerShellProcess = Runtime.getRuntime().exec(params);
 					
 					BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream()));
@@ -164,7 +167,7 @@ public class Worker {
 				
 		        
 		        try {
-					Thread.sleep(500);
+					Thread.sleep(50000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
