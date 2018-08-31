@@ -126,7 +126,7 @@ public class ClientUploader {
 		// STEP 10 - Create (for each video fragmented part) a POST REQUEST
 		// Then the server will replicate the request in the quantity of part that params filtered received
 		//for (int i=0; i<chunks; i++) {
-		for (int i=0; i<1; i++) {
+		for (int i=0; i<chunks; i++) {
 	
 				try {
 					output = outputPath+"_part_"+i+".mp4";

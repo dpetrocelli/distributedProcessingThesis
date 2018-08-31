@@ -102,18 +102,24 @@ public class Worker {
 					System.out.println("VIDEO NAME:"+realOutput);
 					// Obtain parameters from msg
 					String parametersFromMsg = msgRearmed.getParamsEncoding();
-					parametersFromMsg = parametersFromMsg.substring(1, (parametersFromMsg.length()-2));
+					
+					parametersFromMsg = parametersFromMsg.substring(1, ((parametersFromMsg.length()-1)));
 					String[] paramsPart = parametersFromMsg.split(Pattern.quote(","));
-					String params = FFMpegBasePath+"ffmpeg.exe -loglevel quiet -y -i "+localPath+" -s "+paramsPart[1]+" -aspect 16:9 -c:v "+paramsPart[2]+" -g 50 -b:v "+paramsPart[3]+"k -profile:v "+paramsPart[0]+" -level "+paramsPart[4]+" -r "+paramsPart[5]+" -preset "+paramsPart[6]+" -threads 0 -c:a aac -strict experimental -b:a "+paramsPart[11]+"k -ar "+paramsPart[12]+" -ac "+paramsPart[13]+" "+realOutput;
-					System.out.println(params);
-					Thread.sleep(1000000);
+					
+					String params = FFMpegBasePath+"ffmpeg.exe -loglevel quiet -y -i "+localPath+" -s"+paramsPart[1]+" -aspect 16:9 -c:v"+paramsPart[2]+" -g 50 -b:v"+paramsPart[3]+"k -profile:v "+paramsPart[0]+" -level"+paramsPart[4]+" -r"+paramsPart[5]+" -preset"+paramsPart[6]+" -threads 0 -c:a aac -strict experimental -b:a";
+					params+=paramsPart[11]+"k -ar"+paramsPart[12]+" -ac"+paramsPart[13]+" "+realOutput;
+					
+					
+					System.out.println(" PARAMS: "+params);					
 					Process powerShellProcess = Runtime.getRuntime().exec(params);
+					
 					
 					BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream()));
 					String line2;
+					
 					System.out.println(" STEP 4 -  File filtered and saved");
 					while ((line2 = stderr.readLine()) != null) {
-						//
+						System.out.println(line2);
 					}
 					stderr.close();
 					System.out.println(" STEP 5 -  Create msg response ");
@@ -167,7 +173,7 @@ public class Worker {
 				
 		        
 		        try {
-					Thread.sleep(50000);
+					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

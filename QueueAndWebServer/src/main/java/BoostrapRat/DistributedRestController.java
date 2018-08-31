@@ -211,7 +211,7 @@ public class DistributedRestController {
 		    while (line != null) {
 		        String[] partsParameters = line.split(Pattern.quote("|"));
 		        parameters = new ArrayList<String>();
-		        for (int i=1; i<(partsParameters.length-1); i++) parameters.add(partsParameters[i]);
+		        for (int i=1; i<(partsParameters.length); i++) parameters.add(partsParameters[i]);
 		        filterParameters.put(partsParameters[0], parameters);
 		        
 		        // After fullfill line, read next
