@@ -36,6 +36,8 @@ public class Worker {
 			 * 6. create POST request to queue identify by String userAndQueueName
 			 * All done.
 			 */
+		
+		
 			String workerName;
 			try {
 				InetAddress addr = InetAddress.getLocalHost();
@@ -49,14 +51,14 @@ public class Worker {
 			
 			while (true) {
 				
-				System.out.println(" STEP 0 -  Obtaining Job");
+				//System.out.println(" STEP 0 -  Obtaining Job");
 				// STEP 1 - Obtain Job
 				String url = "http://"+ipSpringServer+":8080/getJob?name="+workerName;
 				URL obj = new URL(url);
 				HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 				int responseCode = con.getResponseCode();
-				System.out.println("\nSending 'GET' request to URL : " + url);
-				System.out.println("Response Code : " + responseCode);
+				//System.out.println("\nSending 'GET' request to URL : " + url);
+				//System.out.println("Response Code : " + responseCode);
 				BufferedReader in =new BufferedReader(new InputStreamReader(con.getInputStream()));
 				String inputLine;
 				StringBuffer response = new StringBuffer();
@@ -87,7 +89,7 @@ public class Worker {
 					saveVideoName+="_"+numberOfPart;
 					
 					String localPath = "C:\\DTP\\video\\fileToApplyFilter\\FTAF_"+saveVideoName+".mp4";
-					System.out.println("LOCAL PATH"+localPath);
+					//System.out.println("LOCAL PATH"+localPath);
 					try (FileOutputStream fos = new FileOutputStream(localPath)) {
 						   fos.write(msgRearmed.getData());
 						   //fos.close(); There is no more need for this line since you had created the instance of "fos" inside the try. And this will automatically close the OutputStream
@@ -97,9 +99,9 @@ public class Worker {
 					
 					String FFMpegBasePath = "C:\\DTP\\ffmpeg\\bin\\";
 					String outputPath = "C:\\DTP\\video\\compressedInWorker\\"+saveVideoName+"_WKCOMP";
-					System.out.println("VIDEO NAME:"+outputPath);
+					//System.out.println("VIDEO NAME:"+outputPath);
 					String realOutput = outputPath+"_part_"+msgRearmed.getPart()+".mp4";
-					System.out.println("VIDEO NAME:"+realOutput);
+					//System.out.println("VIDEO NAME:"+realOutput);
 					// Obtain parameters from msg
 					String parametersFromMsg = msgRearmed.getParamsEncoding();
 					
@@ -110,7 +112,7 @@ public class Worker {
 					params+=paramsPart[11]+"k -ar"+paramsPart[12]+" -ac"+paramsPart[13]+" "+realOutput;
 					
 					
-					System.out.println(" PARAMS: "+params);					
+					//System.out.println(" PARAMS: "+params);					
 					Process powerShellProcess = Runtime.getRuntime().exec(params);
 					
 					
@@ -122,6 +124,8 @@ public class Worker {
 						System.out.println(line2);
 					}
 					stderr.close();
+					
+					
 					System.out.println(" STEP 5 -  Create msg response ");
 					
 					byte[] data = Files.readAllBytes(new File(realOutput).toPath());
@@ -132,7 +136,7 @@ public class Worker {
 					System.out.println(" STEP 6 -  POST (push) to userQueueFile ");
 					
 					
-					String request = "http://"+ipSpringServer+":8080/uploadFinishedJob?name="+returnQueue;			
+					String request = "http://"+ipSpringServer+":8080/uploadFinishedJob?server="+workerName+"&name="+returnQueue+"&part="+(msgRearmed.getName()+"_part_"+msgRearmed.getPart());			
 					
 					URL myurl = new URL(request);
 		            con = (HttpURLConnection) myurl.openConnection();
@@ -150,7 +154,7 @@ public class Worker {
 			                
 							pw.write(msgEncoded);
 			            }
-
+					 System.out.println(" STEP 7 -  POST DONE ");
 			            StringBuilder content;
 
 			            try (BufferedReader in1 = new BufferedReader(
@@ -165,19 +169,19 @@ public class Worker {
 			                }
 			            }
 
-			            System.out.println(content.toString());
+			            //System.out.println(content.toString());
 					
 				}catch (Exception e) {
-					System.err.println(" Empty Queue ");
+					e.printStackTrace();
 				}
 				
 		        
-		        try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		       try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			}
 			
 		}

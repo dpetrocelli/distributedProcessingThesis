@@ -70,7 +70,7 @@ public class DistributedRestController {
 	// Client -> Obtain Finished Task
 	@RequestMapping(value = "/getEndTasks", method = RequestMethod.GET)
 	public String getFinishedTask(@RequestParam("name") String name) {
-		System.err.println("Client GETTING FINISHED JOBS");
+		//System.err.println("Client GETTING FINISHED JOBS");
 		GetResponse data = null;
 		byte[] responseByte = null;
 		String response = null;
@@ -152,20 +152,22 @@ public class DistributedRestController {
 	// Worker -> Get Task
 	@RequestMapping(value = "/getJob", method = RequestMethod.GET)
 	  public String getJob (@RequestParam("name") String name) {
-		System.err.println("WORKER "+name+" IS GETTING JOB");
+		//System.err.println("WORKER "+name+" IS GETTING JOB");
 		GetResponse data = null;
 		byte[] responseByte = null;
 		String response = null;
 		try {
 			
+				if (this.enterChannel.queueDeclarePassive(this.enterQueue).getMessageCount()>0) {
+					data = this.enterChannel.basicGet(this.enterQueue, true);
+					responseByte = data.getBody();
+					response = new String(responseByte, "UTF-8");
+				}else {
+					response = "NO DATA INFO";
+				}
 			
-			if (this.enterChannel.queueDeclarePassive(this.enterQueue).getMessageCount()>0) {
-				data = this.enterChannel.basicGet(this.enterQueue, true);
-				responseByte = data.getBody();
-				response = new String(responseByte, "UTF-8");
-			}else {
-				response = "NO DATA INFO";
-			}
+			
+			
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -178,10 +180,11 @@ public class DistributedRestController {
 	
 	// Worker -> Upload (push) finished task
 	@RequestMapping(value = "/uploadFinishedJob", method = RequestMethod.POST)
-	  public String persistFinishedWorkerTask(@RequestBody String msg, @RequestParam("name") String name) { 	
+	  public String persistFinishedWorkerTask(@RequestBody String msg, @RequestParam("name") String name, @RequestParam("server") String worker, @RequestParam("part") String part) { 	
 		  	// actions to do
 		  	// 1. save resource in clientFinishedQueue;
-		  	System.out.println("UPLOAD FINISHED JOB - > ARRIVED "+name);
+		  	System.out.println("WORKER: "+worker+" / UPLOAD JOB "+name);
+		  	System.err.println("PART:_ "+part);
 		  	String queueFinishedUser = name;
 		  	try {
 				//this.enterChannel.queueDeclare(queueFinishedUser, false, false, false, null);

@@ -27,7 +27,7 @@ public class ClientDownloader implements Runnable{
 		}
 		
 		// STEP 0 - Define variables
-		System.out.println("Client Downloader finished Jobs started");
+		//System.out.println("Client Downloader finished Jobs started");
 		int i = 0;
 		String ipSpringServer = "10.2.3.67";
 		String outputBasePath = "C:\\DTP\\video\\returnedCompressed\\compressed_"+this.id+"_part_";
@@ -71,7 +71,7 @@ public class ClientDownloader implements Runnable{
 					// STEP 5 - If parts completed, break 
 					if (i==this.totalParts) break;
 				}catch (Exception e) {
-					System.err.println("NO INFO");
+					//System.err.println("NO INFO");
 					
 				}
 				
@@ -85,7 +85,7 @@ public class ClientDownloader implements Runnable{
 				e.printStackTrace();
 			}
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
