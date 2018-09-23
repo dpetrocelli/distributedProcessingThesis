@@ -1,4 +1,4 @@
-package newClient;
+package clientX86;
 
 public class Message {
 	String userAndQueueName;
@@ -33,6 +33,8 @@ public class Message {
 	}
 	
 	
+
+
 
 	public String getName() {
 		return name;

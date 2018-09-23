@@ -1,20 +1,17 @@
-package BoostrapRat;
+package WorkerX86;
 
 public class Message {
-	String originalName;
+	String userAndQueueName;
 	String name;
 	int part;
 	int qParts;
 	//String data;
 	byte[] data;
 	String paramsEncoding;
-	
-	
-	
-	
+		
 	public Message(String originalName, String name, int part, int qParts, byte[] data, String paramsEncoding) {
 		super();
-		this.originalName = originalName;
+		this.userAndQueueName = originalName;
 		this.name = name;
 		this.part = part;
 		this.qParts = qParts;
@@ -24,7 +21,13 @@ public class Message {
 	}
 	
 	
+	public String getUserAndQueueName() {
+		return userAndQueueName;
+	}
 
+	public void setUserAndQueueName(String userAndQueueName) {
+		this.userAndQueueName = userAndQueueName;
+	}
 	public String getName() {
 		return name;
 	}

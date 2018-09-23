@@ -40,7 +40,7 @@ public class DistributedRestController {
 	public DistributedRestController () {
 		// CREATE THE CONSTRUCTOR
 		this.factory = new ConnectionFactory();
-		this.factory.setHost("10.2.3.67");
+		this.factory.setHost("192.168.1.103");
 		this.factory.setUsername("admin");
 		this.factory.setPassword("admin");
 		try {
@@ -62,7 +62,7 @@ public class DistributedRestController {
 		
 		// Obtain parameter list (from configuration file)
 		filterParameters = new HashMap<String,ArrayList<String>>();
-		this.readFromFile (filterParameters, "src/main/java/videoParameters");
+		this.readFromFile (filterParameters, "src\\main\\java\\thesis\\videoParameters");
 		
 	}
 	
@@ -104,7 +104,7 @@ public class DistributedRestController {
 			// STEP 3 - Rearm msg class
 			// STEP 4 - based on filterParameter, replicate msgStructure + parameters for profile in the queue
 			// STEP 5 - Create the finishedTaskQueue where workers will deploy the answers (1 per each queueFile)
-		  	
+		  	System.err.println(" HOLA PUTA ");
 		  	String finishedSpecificQueue;
 		  	String msgEncoded;
 		  	try {
@@ -159,7 +159,9 @@ public class DistributedRestController {
 		try {
 			
 				if (this.enterChannel.queueDeclarePassive(this.enterQueue).getMessageCount()>0) {
-					data = this.enterChannel.basicGet(this.enterQueue, true);
+					//data = this.enterChannel.basicGet(this.enterQueue, true);
+					data = this.enterChannel.basicGet(this.enterQueue,false);
+					//data = this.enterChannel.basicConsume(this.enterQueue, false, arg2)
 					responseByte = data.getBody();
 					response = new String(responseByte, "UTF-8");
 				}else {
@@ -175,6 +177,7 @@ public class DistributedRestController {
 		}
 		
 		return response;
+		
 		 
 	 }
 	

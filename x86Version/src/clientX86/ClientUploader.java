@@ -1,9 +1,7 @@
-package newClient;
+package clientX86;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -13,14 +11,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 public class ClientUploader {
@@ -104,11 +99,11 @@ public class ClientUploader {
 				listOfProfilesToapply+=filter+"_";
 				
 				// Create downlaoder thread, start it and save in arrayList (for join and not finish main threaD)
-			
+			/*
 				ClientDownloader cd = new ClientDownloader(queuePollingName, (chunks));
 				Thread cdThread = new Thread(cd);
 				cdThread.start();
-				threadList.add(cdThread);
+				threadList.add(cdThread);*/
 			}
 			// remove last | in string 
 			listOfProfilesToapply = listOfProfilesToapply.substring(0, (listOfProfilesToapply.length()-1));
@@ -123,10 +118,12 @@ public class ClientUploader {
 			
 			// STEP 8 - Create HTTP Client request + POST REQUESTER (Here use listOfProfilesToapply)
 			HttpClient httpClient = HttpClientBuilder.create().build();
-			String ipSpringServer = "10.2.3.67";
+			String ipSpringServer = "192.168.1.103";
 			
+
 			// STEP 9 - Define URL based on name (base queue) + profiles (to create specific queue)
-			String urlPost = "http://"+ipSpringServer+":8080/uploadChunk?name="+baseQueueName+"&queues="+listOfProfilesToapply;
+			String urlPost = "http://"+ipSpringServer +":8080/uploadChunk?name="+baseQueueName+"&queues="+listOfProfilesToapply;
+			
 			System.out.println("URL POST: "+urlPost);
 			HttpURLConnection con = null;
 			HttpPost request = new HttpPost(urlPost);

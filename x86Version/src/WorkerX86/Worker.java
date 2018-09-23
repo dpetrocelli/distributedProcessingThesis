@@ -1,4 +1,4 @@
-package Worker;
+package WorkerX86;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,7 +12,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.regex.Pattern;
 
-import newClient.Message;
 
 public class Worker {
 
@@ -46,7 +45,7 @@ public class Worker {
 				workerName = "noName";
 			}
 			
-			String ipSpringServer = "10.2.3.67";
+			String ipSpringServer = "192.168.1.103";
 			int threadId = (int) Thread.currentThread().getId();
 			
 			while (true) {
@@ -78,7 +77,7 @@ public class Worker {
 					
 					// STEP 2.5 - Save the queue where i must reply my msg
 					String returnQueue = msgRearmed.getName();
-					
+					System.out.println(" vIDEO PART: "+returnQueue + msgRearmed.part);
 					System.out.println(" STEP 2 -  Msg rearmed");
 					// STEP 3 - Download byte[] to file local disk
 					String originalName = "C:\\DTP\\video\\splittedVideo\\"+msgRearmed.getName()+"_splitted_part_0.mp4";
@@ -177,7 +176,7 @@ public class Worker {
 				
 		        
 		       try {
-				Thread.sleep(500);
+				Thread.sleep(5000000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

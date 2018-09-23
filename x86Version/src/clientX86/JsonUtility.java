@@ -1,4 +1,4 @@
-package BoostrapRat;
+package clientX86;
 
 import com.google.gson.Gson;
 

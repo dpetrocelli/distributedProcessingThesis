@@ -1,9 +1,9 @@
-package Worker;
+package WorkerX86;
 
 
 import com.google.gson.Gson;
 
-import newClient.Message;
+
 
 public class JsonUtility {
 	
