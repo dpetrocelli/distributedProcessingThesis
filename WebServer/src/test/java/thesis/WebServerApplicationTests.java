@@ -1,4 +1,4 @@
-package com.example.demo;
+package thesis;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
