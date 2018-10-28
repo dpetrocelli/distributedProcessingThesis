@@ -1,32 +1,46 @@
 package WorkerX86;
 
 public class Message {
-	String userAndQueueName;
+	String originalName;
 	String name;
 	int part;
 	int qParts;
-	//String data;
+	String service;
 	byte[] data;
 	String paramsEncoding;
-		
-	public Message(String originalName, String name, int part, int qParts, byte[] data, String paramsEncoding) {
+	String idForAck;
+	
+	
+	
+	public Message(String originalName, String name, int part, int qParts, String service, byte[] data, String paramsEncoding, String idForAck) {
 		super();
-		this.userAndQueueName = originalName;
+		this.originalName = originalName;
 		this.name = name;
 		this.part = part;
 		this.qParts = qParts;
+		this.service = service;
 		this.data = data;
 		this.paramsEncoding = paramsEncoding;
+		this.idForAck = idForAck;
 		
 	}
-	
-	
-	public String getUserAndQueueName() {
-		return userAndQueueName;
+		public String getIdForAck() {
+		return idForAck;
 	}
-
-	public void setUserAndQueueName(String userAndQueueName) {
-		this.userAndQueueName = userAndQueueName;
+	public void setIdForAck(String idForAck) {
+		this.idForAck = idForAck;
+	}
+		public String getOriginalName() {
+		return originalName;
+	}
+	public void setOriginalName(String originalName) {
+		this.originalName = originalName;
+	}
+	public String getService() {
+		return service;
+	}
+	public void setService(String service) {
+		this.service = service;
 	}
 	public String getName() {
 		return name;
