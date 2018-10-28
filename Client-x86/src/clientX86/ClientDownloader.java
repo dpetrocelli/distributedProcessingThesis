@@ -30,7 +30,7 @@ public class ClientDownloader implements Runnable{
 		// STEP 0 - Define variables
 		//System.out.println("Client Downloader finished Jobs started");
 		int i = 0;
-		String ipSpringServer = "localhost";
+		String ipSpringServer = "192.168.0.29";
 		String outputBasePath = "C:\\DTP\\video\\returnedCompressed\\compressed_"+this.id+"_part_";
 		
 		// STEP 1 - Loop until parts = parameterParts 

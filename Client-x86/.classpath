@@ -6,10 +6,10 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="D:/trabajo/git/distributedProcessingThesis/libraries/json/gson-2.8.5.jar"/>
-	<classpathentry kind="lib" path="D:/trabajo/git/distributedProcessingThesis/libraries/http/commons-codec-1.10.jar"/>
-	<classpathentry kind="lib" path="D:/trabajo/git/distributedProcessingThesis/libraries/http/commons-logging-1.2.jar"/>
-	<classpathentry kind="lib" path="D:/trabajo/git/distributedProcessingThesis/libraries/http/httpclient-4.5.6.jar"/>
-	<classpathentry kind="lib" path="D:/trabajo/git/distributedProcessingThesis/libraries/http/httpcore-4.4.10.jar"/>
+	<classpathentry kind="lib" path="D:/thesis/distributedProcessingThesis/libraries/json/gson-2.8.5.jar"/>
+	<classpathentry kind="lib" path="D:/thesis/distributedProcessingThesis/libraries/http/commons-codec-1.10.jar"/>
+	<classpathentry kind="lib" path="D:/thesis/distributedProcessingThesis/libraries/http/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="D:/thesis/distributedProcessingThesis/libraries/http/httpclient-4.5.6.jar"/>
+	<classpathentry kind="lib" path="D:/thesis/distributedProcessingThesis/libraries/http/httpcore-4.4.10.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
