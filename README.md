@@ -1,4 +1,4 @@
 # distributedProcessingThesis
 Up to now , we can compress multi video files from each client
 
-last version
+last versionccc
