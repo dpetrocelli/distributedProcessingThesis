@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WorkerAndroid</string>
+    <string name="default_ipAddress_port">192.168.137.1:8080</string>   <string name="default_iterations">1</string>
+</resources>
