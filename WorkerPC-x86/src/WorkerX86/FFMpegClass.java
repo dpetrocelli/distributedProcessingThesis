@@ -36,14 +36,21 @@ public class FFMpegClass {
 		System.out.println(" vIDEO PART: "+returnQueue + msgRearmed.part);
 		System.out.println(" STEP 2 -  Msg rearmed");
 		// STEP 3 - Download byte[] to file local disk
-		String originalName = "C:\\DTP\\video\\splittedVideo\\"+msgRearmed.getName()+"_splitted_part_0.mp4";
-		String[] parts = msgRearmed.getName().split(Pattern.quote("\\"));
+		String basePath = "";
+		if (System.getProperty("os.name").startsWith("Windows")){
+			basePath = "C:/DTP/";
+		}else {
+			basePath = "/tmp/";
+		}
+		
+		String originalName = basePath+"/video/splittedVideo/"+msgRearmed.getName()+"_splitted_part_0.mp4";
+		String[] parts = msgRearmed.getName().split(Pattern.quote("/"));
 		String[] megaparts = (parts[(parts.length-1)].split(Pattern.quote("_")));
 		String saveVideoName = megaparts[0]+"_"+megaparts[1];
 		String numberOfPart = megaparts[(megaparts.length-1)].split(Pattern.quote("."))[0];
 		saveVideoName+="_"+numberOfPart;
 		
-		String localPath = "C:\\DTP\\video\\fileToApplyFilter\\FTAF_"+saveVideoName+".mp4";
+		String localPath = basePath+"video/fileToApplyFilter/FTAF_"+saveVideoName+".mp4";
 		//System.out.println("LOCAL PATH"+localPath);
 		try (FileOutputStream fos = new FileOutputStream(localPath)) {
 			   fos.write(msgRearmed.getData());
@@ -58,8 +65,8 @@ public class FFMpegClass {
 		System.out.println(" STEP 3 -  binary File Saved");
 		// STEP 4 - Apply Filter - Organize
 		
-		String FFMpegBasePath = "C:\\DTP\\ffmpeg\\bin\\";
-		String outputPath = "C:\\DTP\\video\\compressedInWorker\\"+saveVideoName+"_WKCOMP";
+		String FFMpegBasePath = basePath+"ffmpeg/bin/";
+		String outputPath = basePath+"video/compressedInWorker/"+saveVideoName+"_WKCOMP";
 		//System.out.println("VIDEO NAME:"+outputPath);
 		String realOutput = outputPath+"_part_"+msgRearmed.getPart()+".mp4";
 		//System.out.println("VIDEO NAME:"+realOutput);
@@ -69,7 +76,7 @@ public class FFMpegClass {
 		parametersFromMsg = parametersFromMsg.substring(1, ((parametersFromMsg.length()-1)));
 		String[] paramsPart = parametersFromMsg.split(Pattern.quote(","));
 		
-		String params = FFMpegBasePath+"ffmpeg.exe -loglevel quiet -y -i "+localPath+" -s"+paramsPart[1]+" -aspect 16:9 -c:v"+paramsPart[2]+" -g 50 -b:v"+paramsPart[3]+"k -profile:v "+paramsPart[0]+" -level"+paramsPart[4]+" -r"+paramsPart[5]+" -preset"+paramsPart[6]+" -threads 0 -c:a aac -strict experimental -b:a";
+		String params = FFMpegBasePath+"ffmpeg -loglevel quiet -y -i "+localPath+" -s"+paramsPart[1]+" -aspect 16:9 -c:v"+paramsPart[2]+" -g 50 -b:v"+paramsPart[3]+"k -profile:v "+paramsPart[0]+" -level"+paramsPart[4]+" -r"+paramsPart[5]+" -preset"+paramsPart[6]+" -threads 0 -c:a aac -strict experimental -b:a";
 		params+=paramsPart[11]+"k -ar"+paramsPart[12]+" -ac"+paramsPart[13]+" "+realOutput;
 		
 		
