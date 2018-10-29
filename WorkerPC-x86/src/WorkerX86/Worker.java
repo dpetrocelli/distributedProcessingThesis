@@ -46,7 +46,7 @@ public class Worker {
 				workerName = "noName";
 			}
 			
-			String ipSpringServer = "192.168.0.29";
+			String ipSpringServer = "192.168.225.236";
 			int threadId = (int) Thread.currentThread().getId();
 			
 			while (true) {

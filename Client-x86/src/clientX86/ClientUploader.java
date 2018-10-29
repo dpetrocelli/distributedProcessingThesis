@@ -26,11 +26,20 @@ public class ClientUploader {
 		
 		//listOfVideos.add("C:\\DTP\\video\\OriginalVideo.mp4");
 		long timeStart = 0, timeEnd;
+		String basePath = "";
 		/*listOfVideos.add("C:\\DTP\\video\\bigbuckbunny_1500.mp4");
 		listOfVideos.add("C:\\DTP\\video\\BIRDS.mp4");*/
-
-		File path = new File("C:\\DTP\\video\\inputQueue");
+		if (System.getProperty("os.name").startsWith("Windows")){
+			basePath  = "C:/DTP/";
+		}else {
+			basePath = "/tmp/";
+		}
+		
+		File path = new File(basePath+"video/inputQueue");
 	    File [] files = path.listFiles();
+	    
+	    
+	        	    
 	    for (int i = 0; i < files.length; i++){
 	        if (files[i].isFile()){ //this line weeds out other directories/folders
 	        	listOfVideos.add(files[i].toString());
@@ -42,7 +51,7 @@ public class ClientUploader {
 		// STEP 0 - Define FFMpeg Path
 		
 		for (String videoFile : listOfVideos) {
-			String FFMpegBasePath = "C:\\DTP\\ffmpeg\\bin\\";
+			String FFMpegBasePath = basePath+"ffmpeg/bin/";
 			
 			// STEP 1 - Obtain ID for the activities
 			//int id = ThreadLocalRandom.current().nextInt(0, 100000);
@@ -50,7 +59,7 @@ public class ClientUploader {
 			
 			// STEP 2 - Define videoPath (1 per client up to now)
 			String videoPath = videoFile;
-			String[] a = videoPath.split(Pattern.quote("\\"));
+			String[] a = videoPath.split(Pattern.quote("/"));
 			String videoName = (a[(a.length-1)].split(Pattern.quote(".")))[0];
 				
 			
@@ -65,7 +74,7 @@ public class ClientUploader {
 			timeStart = System.currentTimeMillis();
 			
 			// STEP 4 - Define path for splitted video (only need once path and one splitted activitie)
-			String outputPath = "C:\\DTP\\video\\splittedVideo\\"+videoName+"_splitted";
+			String outputPath = basePath+"video/splittedVideo/"+videoName+"_splitted";
 			
 			// STEP 5 - Define chunks duration (now is based on a criteria, in SECS)
 			int chunkDuration = 5; 
@@ -128,7 +137,7 @@ public class ClientUploader {
 			
 			// STEP 8 - Create HTTP Client request + POST REQUESTER (Here use listOfProfilesToapply)
 			HttpClient httpClient = HttpClientBuilder.create().build();
-			String ipSpringServer = "192.168.0.29";
+			String ipSpringServer = "192.168.225.236";
 			
 
 			// STEP 9 - Define URL based on name (base queue) + profiles (to create specific queue)
@@ -236,7 +245,7 @@ public class ClientUploader {
 
 	private String splitVideoFile(int part, String videoPath, String FFMpegBasePath, int chunkStep, String outputName) {
 		
-		String params = FFMpegBasePath+"ffmpeg.exe -y -i "+videoPath+" -ss "+(part*chunkStep)+" -t "+chunkStep+ " "+outputName;
+		String params = FFMpegBasePath+"ffmpeg -y -i "+videoPath+" -ss "+(part*chunkStep)+" -t "+chunkStep+ " "+outputName;
 		//System.out.println(params);
 		
 		try {
@@ -270,7 +279,7 @@ public class ClientUploader {
 	}
 	
 	private float obtainVideoDuration(String FFMpegBasePath, String videoPath) {
-		String task = FFMpegBasePath+"ffprobe.exe -v error -show_entries format=duration "+videoPath+" -of default=noprint_wrappers=1:nokey=1";
+		String task = FFMpegBasePath+"ffprobe -v error -show_entries format=duration "+videoPath+" -of default=noprint_wrappers=1:nokey=1";
 		//System.out.println(task);
 		Process powerShellProcess;
 		float duration = 0;

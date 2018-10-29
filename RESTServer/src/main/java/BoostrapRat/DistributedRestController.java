@@ -24,6 +24,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.GetResponse;
+import com.rabbitmq.client.MessageProperties;
 
 @RestController
 public class DistributedRestController {
@@ -42,7 +43,7 @@ public class DistributedRestController {
 	public DistributedRestController () {
 		// CREATE THE CONSTRUCTOR
 		this.factory = new ConnectionFactory();
-		this.factory.setHost("192.168.0.29");
+		this.factory.setHost("192.168.225.236");
 		this.factory.setUsername("admin");
 		this.factory.setPassword("admin");
 		try {
@@ -66,14 +67,14 @@ public class DistributedRestController {
 		this.filterParameters = new HashMap<String,ArrayList<String>>();
 		this.AckService = new HashMap<Long, Long>();
 		// ACTIVATE THREAD FOR LOOPING AND DELETING UNCORRESPONDANT MSG
-		int timeCheckInterval = 28*1000;
-		int timeoutPackage = 120*1000;
+		int timeCheckInterval = 15*1000;
+		int timeoutPackage = 60*1000;
 		ManageAckList mal = new ManageAckList (this.enterChannel, this.AckService, timeCheckInterval, timeoutPackage);
 		Thread malThread = new Thread (mal);
 		malThread.start();
 			
 		
-		this.readFromFile (filterParameters, "src\\main\\java\\BoostrapRat\\videoParameters");
+		this.readFromFile (filterParameters, "src/main/java/BoostrapRat/videoParameters");
 		
 	}
 	
@@ -115,11 +116,12 @@ public class DistributedRestController {
 			// STEP 3 - Rearm msg class
 			// STEP 4 - based on filterParameter, replicate msgStructure + parameters for profile in the queue
 			// STEP 5 - Create the finishedTaskQueue where workers will deploy the answers (1 per each queueFile)
-		  	
+			boolean durable = true;
 		  	String finishedSpecificQueue;
 		  	String msgEncoded;
 		  	try {
-				this.enterChannel.queueDeclare(this.enterQueue, false, false, false, null);
+
+		  		this.enterChannel.queueDeclare(this.enterQueue, durable, false, false, null);
 				
 				// STEP 2 - obtain each filter
 				String[] filters = queuesList.split(Pattern.quote("_"));
@@ -140,12 +142,12 @@ public class DistributedRestController {
 					jsonUt.setObject(msgRearmed);
 					msgEncoded = jsonUt.toJson();
 					// STEP 4.1 - Save in normal queue 
-					this.enterChannel.basicPublish("", this.enterQueue, null, msgEncoded.getBytes());
+					this.enterChannel.basicPublish("", this.enterQueue, MessageProperties.PERSISTENT_TEXT_PLAIN, msgEncoded.getBytes());
 					System.out.println(" MSG: saved in enteredQueue" );
 					
 					// STEP 5 - Create (or not) the specific finishedQueue 
 					finishedSpecificQueue=name+"_"+filter;
-					this.enterChannel.queueDeclare(finishedSpecificQueue, true, false, false, null);
+					this.enterChannel.queueDeclare(finishedSpecificQueue, durable, false, false, null);
 					System.out.println(" queueJob: "+finishedSpecificQueue+" has been created");
 										
 				}
@@ -225,6 +227,7 @@ public class DistributedRestController {
 						this.enterChannel.basicAck(Long.parseLong(idForAck), false);
 			
 						// REMOVE FROM ACK LIST
+						
 						this.AckService.remove(Long.parseLong(idForAck));
 						System.out.println(" REMOVED ID: "+idForAck);
 						System.out.println(" LIST: "+this.AckService.toString());
@@ -249,7 +252,7 @@ public class DistributedRestController {
 			  	String queueFinishedUser = name;
 			  	try {
 					//this.enterChannel.queueDeclare(queueFinishedUser, false, false, false, null);
-					this.enterChannel.basicPublish("", queueFinishedUser, null, msg.getBytes());
+					this.enterChannel.basicPublish("", queueFinishedUser, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes());
 					System.out.println(" TASK FINISHED saved " );
 					
 					
