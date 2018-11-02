@@ -9,7 +9,11 @@ public class Message {
 	byte[] data;
 	String paramsEncoding;
 	String idForAck;
-	
+	String workerName;
+	String workerArchitecture;
+	long  initTime;
+	long endTime;
+	int totalTime;
 	
 	
 	public Message(String originalName, String name, int part, int qParts, String service, byte[] data, String paramsEncoding, String idForAck) {
@@ -24,6 +28,65 @@ public class Message {
 		this.idForAck = idForAck;
 		
 	}
+	
+	public Message(String originalName, String name, int part, int qParts, String service, byte[] data, String paramsEncoding, String idForAck, String workerName, String workerArchitecture, long initTime, long endTime, int executionTime) {
+		super();
+		this.originalName = originalName;
+		this.name = name;
+		this.part = part;
+		this.qParts = qParts;
+		this.service = service;
+		this.data = data;
+		this.paramsEncoding = paramsEncoding;
+		this.idForAck = idForAck;
+		this.workerName = workerName;
+		this.workerArchitecture = workerArchitecture;
+		this.initTime = initTime;
+		this.endTime = endTime;
+		this.totalTime = totalTime;
+	}
+	
+	
+	public String getWorkerName() {
+		return workerName;
+	}
+
+	public void setWorkerName(String workerName) {
+		this.workerName = workerName;
+	}
+
+	public String getWorkerArchitecture() {
+		return workerArchitecture;
+	}
+
+	public void setWorkerArchitecture(String workerArchitecture) {
+		this.workerArchitecture = workerArchitecture;
+	}
+
+	public long getInitTime() {
+		return initTime;
+	}
+
+	public void setInitTime(long initTime) {
+		this.initTime = initTime;
+	}
+
+	public long getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(long endTime) {
+		this.endTime = endTime;
+	}
+
+	public int getTotalTime() {
+		return totalTime;
+	}
+
+	public void setTotalTime(int totalTime) {
+		this.totalTime = totalTime;
+	}
+
 		public String getIdForAck() {
 		return idForAck;
 	}

@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
+import java.sql.Timestamp;
 import java.util.regex.Pattern;
 
 public class FFMpegClass {
@@ -20,8 +21,10 @@ public class FFMpegClass {
 	String idForAck;
 	String ipSpringServer;
 	HttpURLConnection con;
+	Timestamp timestamp;
+	long initTime;
 	
-	public FFMpegClass(Message msgRearmed, JsonUtility jsonUt, String workerName, String idForAck, String ipSpringServer, HttpURLConnection con) {
+	public FFMpegClass(Message msgRearmed, JsonUtility jsonUt, String workerName, String idForAck, String ipSpringServer, HttpURLConnection con, long initTime) {
 		
 		this.msgRearmed =msgRearmed;  
 		this.jsonUt = jsonUt; 
@@ -29,7 +32,8 @@ public class FFMpegClass {
 		this.idForAck = idForAck;
 		this.ipSpringServer = ipSpringServer; 
 		this.con = con;
-		
+		timestamp = new Timestamp(System.currentTimeMillis()); 
+		initTime = initTime;
 		
 		// STEP 2.5 - Save the queue where i must reply my msg
 		String returnQueue = msgRearmed.getName();
@@ -102,8 +106,10 @@ public class FFMpegClass {
 			
 			System.out.println(" STEP 6 -  POST (push) to userQueueFile ");
 			
-			
-			String request = "http://"+ipSpringServer+":8080/uploadFinishedJob?server="+workerName+"&name="+returnQueue+"&part="+(msgRearmed.getName()+"_part_"+msgRearmed.getPart()+"&idForAck="+idForAck);			
+			long endTime = timestamp.getTime();
+			String osType= System.getProperty("os.arch");
+	        
+			String request = "http://"+ipSpringServer+":8080/uploadFinishedJob?server="+workerName+"&name="+returnQueue+"&workerArchitecture="+osType+"&part="+(msgRearmed.getName()+"_part_"+msgRearmed.getPart()+"&idForAck="+idForAck+"&initTime="+String.valueOf(initTime)+"&endTime="+String.valueOf(endTime)+"&totalTime="+String.valueOf(endTime-initTime));			
 			System.out.println(" REQUE: "+request);
 			URL myurl = new URL(request);
 	        con = (HttpURLConnection) myurl.openConnection();

@@ -29,7 +29,7 @@ import com.rabbitmq.client.MessageProperties;
 @RestController
 public class DistributedRestController {
 	
-	
+	// INIT RABBIT DATA
 	private static String enterQueue = "enterQueue";
 	private static String pendantQueue = "pendantQueue";
 	ConnectionFactory factory;
@@ -37,13 +37,32 @@ public class DistributedRestController {
 	Channel enterChannel;
 	Connection pendantConnection;
 	Channel pendantChannel;
+	// END RABBIT DATA
+	
+	// INIT DB DATA
+	MariaDBConnection mdbc;
+	// END DB DATA
+	
 	HashMap<String,ArrayList<String>> filterParameters;
 	HashMap<Long, Long> AckService;
 	
 	public DistributedRestController () {
 		// CREATE THE CONSTRUCTOR
+		
+		// FIRST OBTAIN ACCESS TO THE DATABASE
+		 String host = "localhost";
+		 String dbname = "distributedProcessing";
+		 String url = "jdbc:mariadb://" + host + "/" + dbname;
+		 String username = "root";
+		 String password = "Osito1104**";
+		    
+		 this.mdbc = new MariaDBConnection(host, dbname, username, url, password);
+		 this.mdbc.createConnection();
+		
+		// END DATABASE INITIALIZATION
+		 
 		this.factory = new ConnectionFactory();
-		this.factory.setHost("192.168.225.236");
+		this.factory.setHost("192.168.227.23");
 		this.factory.setUsername("admin");
 		this.factory.setPassword("admin");
 		try {
@@ -82,7 +101,7 @@ public class DistributedRestController {
 	// Client -> Obtain Finished Task
 	@RequestMapping(value = "/getEndTasks", method = RequestMethod.GET)
 	public String getFinishedTask(@RequestParam("name") String name) {
-		//System.err.println("Client GETTING FINISHED JOBS");
+		//NAME IS THE QUEUE to get data
 		GetResponse data = null;
 		byte[] responseByte = null;
 		String response = null;
@@ -209,7 +228,7 @@ public class DistributedRestController {
 	
 	// Worker -> Upload (push) finished task
 	@RequestMapping(value = "/uploadFinishedJob", method = RequestMethod.POST)
-	  public String persistFinishedWorkerTask(@RequestBody String msg, @RequestParam("name") String name, @RequestParam("server") String worker, @RequestParam("part") String part, @RequestParam("idForAck") String idForAck) { 	
+	  public String persistFinishedWorkerTask(@RequestBody String msg, @RequestParam("name") String name, @RequestParam("server") String worker, @RequestParam("workerArchitecture") String workerArchitecture, @RequestParam("part") String part, @RequestParam("idForAck") String idForAck, @RequestParam("initTime") String initTime, @RequestParam("endTime") String endTime, @RequestParam("totalTime") String totalTime) { 	
 		  	// actions to do
 		  	// 0 - delete from list
 			boolean validatedMsg = false;
@@ -262,7 +281,11 @@ public class DistributedRestController {
 				}
 			}
 			
-
+			// SET DATA IN DATABASE
+			String query = "insert into jobTracker values ('videoCompression', '"+part+"', '"+worker+"','"+workerArchitecture+"',"+initTime+","+endTime+","+totalTime+")";
+			System.out.println(" SQL: "+query);
+			this.mdbc.doInsertOperation(query);
+			// CONTINUE HERE
 			return "ok - Ready";
 	  }
 	 

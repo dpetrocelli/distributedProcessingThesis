@@ -137,7 +137,7 @@ public class ClientUploader {
 			
 			// STEP 8 - Create HTTP Client request + POST REQUESTER (Here use listOfProfilesToapply)
 			HttpClient httpClient = HttpClientBuilder.create().build();
-			String ipSpringServer = "192.168.225.236";
+			String ipSpringServer = "192.168.227.23";
 			
 
 			// STEP 9 - Define URL based on name (base queue) + profiles (to create specific queue)
