@@ -4,10 +4,14 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,9 +64,15 @@ public class DistributedRestController {
 		 this.mdbc.createConnection();
 		
 		// END DATABASE INITIALIZATION
-		 
+		
+		// OBTAIN IP ADDRESS (LAN )
+		String ipAddress = this.obtainIpAddress("192.168");
+		if (!(ipAddress.length()>5)) {
+			ipAddress = this.obtainIpAddress("10.1.");
+		}
+		
 		this.factory = new ConnectionFactory();
-		this.factory.setHost("192.168.227.23");
+		this.factory.setHost(ipAddress);
 		this.factory.setUsername("admin");
 		this.factory.setPassword("admin");
 		try {
@@ -98,7 +108,41 @@ public class DistributedRestController {
 	}
 	
 	
-	// Client -> Obtain Finished Task
+	private String obtainIpAddress(String baseRegex) {
+		String command = null;
+        if(System.getProperty("os.name").equals("Linux"))
+            command = "ip a";
+        else
+            command = "ipconfig";
+        Runtime r = Runtime.getRuntime();
+        Process p = null;
+		try {
+			p = r.exec(command);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        Scanner s = new Scanner(p.getInputStream());
+
+        StringBuilder sb = new StringBuilder("");
+        while(s.hasNext())
+            sb.append(s.next());
+        String ipconfig = sb.toString();
+        Pattern pt=null;
+        if (baseRegex.startsWith("192")){
+        	pt = Pattern.compile("192\\.168\\.[0-9]{1,3}\\.[0-9]{1,3}");
+        }else {
+        	pt = Pattern.compile("10\\.1\\.[0-9]{1,3}\\.[0-9]{1,3}");
+        }
+        Matcher mt = pt.matcher(ipconfig);
+        mt.find();
+        String ip = mt.group();
+        
+		return ip;
+	}
+
+
+	// Client -> Obtain Finished Task (OK) 
 	@RequestMapping(value = "/getEndTasks", method = RequestMethod.GET)
 	public String getFinishedTask(@RequestParam("name") String name) {
 		//NAME IS THE QUEUE to get data
@@ -126,30 +170,37 @@ public class DistributedRestController {
 		
 	}
 	
-	// Client -> Publish new Task
+	// Client -> Publish new Task (OK)
 	@RequestMapping(value = "/uploadChunk", method = RequestMethod.POST)
-	  public String publishNewClientTask(@RequestBody String msg, @RequestParam("name") String name, @RequestParam("queues") String queuesList) { 	
+	  public String publishNewClientTask(@RequestBody String msg) { 	
 		  	// actions to do
 		  	// STEP 1 - Obtain headers (baseQueueName + List of queues)
 			// STEP 2 - Obtain each filter
 			// STEP 3 - Rearm msg class
 			// STEP 4 - based on filterParameter, replicate msgStructure + parameters for profile in the queue
 			// STEP 5 - Create the finishedTaskQueue where workers will deploy the answers (1 per each queueFile)
+	//@RequestParam("name") String name, @RequestParam("queues") String queuesList	
+			
+			// STEP 1 - Rearm MSG
+			JsonUtility jsonUt = new JsonUtility();
+			jsonUt.setType("Message");
+			Message msgRearmed = (Message) jsonUt.fromJson(msg);
+			
+			String name = msgRearmed.getOriginalName();
+					
 			boolean durable = true;
 		  	String finishedSpecificQueue;
 		  	String msgEncoded;
+		  	
 		  	try {
 
 		  		this.enterChannel.queueDeclare(this.enterQueue, durable, false, false, null);
 				
 				// STEP 2 - obtain each filter
-				String[] filters = queuesList.split(Pattern.quote("_"));
+				String[] filters = msgRearmed.getEncodingProfiles().split(Pattern.quote("_"));
 				String parameters=null;
 				
-				// STEP 3 - Rearm MSG
-				JsonUtility jsonUt = new JsonUtility();
-				jsonUt.setType("Message");
-				Message msgRearmed = (Message) jsonUt.fromJson(msg);
+				
 				
 				// FOR EACH FILTER -> take params from the arraylist and put in msg structure
 				for (String filter : filters) {
@@ -181,7 +232,7 @@ public class DistributedRestController {
 			return "ok - Ready";
 	  }
 	 
-	// Worker -> Get Task
+	// Worker -> Get Task (ok)
 	@RequestMapping(value = "/getJob", method = RequestMethod.GET)
 	  public String getJob (@RequestParam("name") String name) throws InterruptedException {
 		//System.err.println("WORKER "+name+" IS GETTING JOB");
@@ -228,14 +279,19 @@ public class DistributedRestController {
 	
 	// Worker -> Upload (push) finished task
 	@RequestMapping(value = "/uploadFinishedJob", method = RequestMethod.POST)
-	  public String persistFinishedWorkerTask(@RequestBody String msg, @RequestParam("name") String name, @RequestParam("server") String worker, @RequestParam("workerArchitecture") String workerArchitecture, @RequestParam("part") String part, @RequestParam("idForAck") String idForAck, @RequestParam("initTime") String initTime, @RequestParam("endTime") String endTime, @RequestParam("totalTime") String totalTime) { 	
+	  public String persistFinishedWorkerTask(@RequestBody String msg ) { 	
 		  	// actions to do
 		  	// 0 - delete from list
 			boolean validatedMsg = false;
 			
+			JsonUtility jsonUt = new JsonUtility();
+			jsonUt.setType("Message");
+			Message msgRearmed = (Message) jsonUt.fromJson(msg);
+			
 			synchronized (this.AckService) {
 			
 				System.out.println(this.AckService.toString());
+				String idForAck = msgRearmed.getIdForAck();
 				if (this.AckService.containsKey(Long.parseLong(idForAck))) {
 					
 					try {
@@ -266,9 +322,9 @@ public class DistributedRestController {
 
 			if (validatedMsg) {
 				// 1. save resource in clientFinishedQueue;
-			  	System.out.println("WORKER: "+worker+" / UPLOAD JOB "+name);
-			  	System.err.println("PART:_ "+part);
-			  	String queueFinishedUser = name;
+			  	System.out.println("WORKER: "+msgRearmed.getWorkerName()+" / UPLOAD JOB "+msgRearmed.getName());
+			  	System.err.println("PART:_ "+msgRearmed.getName()+"_"+msgRearmed.getPart());
+			  	String queueFinishedUser = msgRearmed.getName();
 			  	try {
 					//this.enterChannel.queueDeclare(queueFinishedUser, false, false, false, null);
 					this.enterChannel.basicPublish("", queueFinishedUser, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes());
@@ -282,7 +338,8 @@ public class DistributedRestController {
 			}
 			
 			// SET DATA IN DATABASE
-			String query = "insert into jobTracker values ('videoCompression', '"+part+"', '"+worker+"','"+workerArchitecture+"',"+initTime+","+endTime+","+totalTime+")";
+			
+			String query = "insert into jobTracker values ('"+msgRearmed.getService()+"', '"+msgRearmed.getName()+'_'+msgRearmed.getPart()+"', '"+msgRearmed.getWorkerName()+"','"+msgRearmed.getWorkerArchitecture()+"',"+msgRearmed.getInitTime()+","+msgRearmed.getEndTime()+","+msgRearmed.getTotalTime()+")";
 			System.out.println(" SQL: "+query);
 			this.mdbc.doInsertOperation(query);
 			// CONTINUE HERE

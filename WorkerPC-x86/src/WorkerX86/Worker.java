@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
 import java.sql.Timestamp;
+import java.util.Scanner;
 
 
 public class Worker {
@@ -82,7 +83,7 @@ public class Worker {
 				
 		        
 		       try {
-				Thread.sleep(5000);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -95,7 +96,10 @@ public class Worker {
 	
 	public static void main(String[] args) throws IOException {
 		
-		Worker wk = new Worker("192.168.227.23");
+		System.out.println("Ingrese ip del servidor");
+		Scanner keyboard = new Scanner(System.in);
+		String ipSpringServer = keyboard.nextLine();
+		Worker wk = new Worker(ipSpringServer);
 		
 		/*
 		 * Worker activities:

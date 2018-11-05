@@ -47,7 +47,7 @@ public class FFMpegClass {
 			basePath = "/tmp/";
 		}
 		
-		String originalName = basePath+"/video/splittedVideo/"+msgRearmed.getName()+"_splitted_part_0.mp4";
+		String originalName = basePath+"/video/splittedVideo/"+msgRearmed.getName()+"_splitted_part_"+msgRearmed.getPart()+".mp4";
 		String[] parts = msgRearmed.getName().split(Pattern.quote("/"));
 		String[] megaparts = (parts[(parts.length-1)].split(Pattern.quote("_")));
 		String saveVideoName = megaparts[0]+"_"+megaparts[1];
@@ -99,17 +99,27 @@ public class FFMpegClass {
 			
 			System.out.println(" STEP 5 -  Create msg response ");
 			
-			byte[] data = Files.readAllBytes(new File(realOutput).toPath());
+			/*byte[] data = Files.readAllBytes(new File(realOutput).toPath());
 			Message msg = new Message(null, null, msgRearmed.getPart(), msgRearmed.getqParts(), msgRearmed.getService(), data, null, null);
 			jsonUt.setObject(msg);
 			String msgEncoded = jsonUt.toJson();
-			
+			*/
 			System.out.println(" STEP 6 -  POST (push) to userQueueFile ");
 			
 			long endTime = timestamp.getTime();
 			String osType= System.getProperty("os.arch");
 	        
-			String request = "http://"+ipSpringServer+":8080/uploadFinishedJob?server="+workerName+"&name="+returnQueue+"&workerArchitecture="+osType+"&part="+(msgRearmed.getName()+"_part_"+msgRearmed.getPart()+"&idForAck="+idForAck+"&initTime="+String.valueOf(initTime)+"&endTime="+String.valueOf(endTime)+"&totalTime="+String.valueOf(endTime-initTime));			
+			/*
+			 * String request = "http://"+ipSpringServer+":8080/uploadFinishedJob?
+			 * server="+workerName+"&
+			 * name="+returnQueue+"&
+			 * workerArchitecture="+osType+"&
+			 * part="+(msgRearmed.getName()+"_part_"+msgRearmed.getPart()+"&
+			 * idForAck="+idForAck+"&
+			 * initTime="+String.valueOf(initTime)+"&
+			 * endTime="+String.valueOf(endTime)+"&totalTime="+String.valueOf(endTime-initTime));			
+			 */
+			String request = "http://"+ipSpringServer+":8080/uploadFinishedJob";
 			System.out.println(" REQUE: "+request);
 			URL myurl = new URL(request);
 	        con = (HttpURLConnection) myurl.openConnection();
@@ -120,9 +130,24 @@ public class FFMpegClass {
 	        con.setRequestProperty("Content-Type", "application/json");
 	        
 			byte[] dataFiltered = Files.readAllBytes(new File(realOutput).toPath());
-			Message msgResponse = new Message(returnQueue, realOutput, msgRearmed.getPart(), msgRearmed.getqParts(), msgRearmed.getService(), dataFiltered, params, idForAck);
+			Message msgResponse = new Message ();
+			msgResponse.setOriginalName(returnQueue);
+			msgResponse.setName(msgRearmed.getName());
+			msgResponse.setPart(msgRearmed.getPart());
+			msgResponse.setqParts(msgRearmed.getqParts());
+			msgResponse.setService(msgRearmed.getService());
+			msgResponse.setData(dataFiltered);
+			msgResponse.setParamsEncoding(params);
+			msgResponse.setWorkerName(workerName);
+			msgResponse.setWorkerArchitecture(osType);
+			msgResponse.setIdForAck(idForAck);
+			msgResponse.setInitTime(initTime);
+			msgResponse.setEndTime(endTime);
+			msgResponse.setTotalTime((int) (endTime-initTime));
+			
+			//Message msgResponse = new Message(returnQueue, realOutput, msgRearmed.getPart(), msgRearmed.getqParts(), msgRearmed.getService(), dataFiltered, params, idForAck);
 			jsonUt.setObject(msgResponse);
-			msgEncoded = jsonUt.toJson();
+			String msgEncoded = jsonUt.toJson();
 			
 			try (PrintWriter pw = new PrintWriter (new OutputStreamWriter (con.getOutputStream()))) {
 			                

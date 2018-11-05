@@ -11,6 +11,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpResponse;
@@ -66,7 +67,7 @@ public class ClientUploader {
 			// STEP 2.6 - Select filters to apply
 			ArrayList<String> filterSelected = new ArrayList<String>();
 			//filterSelected.add("hd");
-			filterSelected.add("480"); 
+			//filterSelected.add("480"); 
 			filterSelected.add("240");
 			// STEP 3 - Define base for queueName (then add jobNumber)
 			String baseQueueName = "u"+id+"_"+videoName;
@@ -77,7 +78,7 @@ public class ClientUploader {
 			String outputPath = basePath+"video/splittedVideo/"+videoName+"_splitted";
 			
 			// STEP 5 - Define chunks duration (now is based on a criteria, in SECS)
-			int chunkDuration = 5; 
+			int chunkDuration = 30; 
 			
 			// STEP 6 - Obtain Video Duration
 			float videoDuration = this.obtainVideoDuration (FFMpegBasePath, videoPath);
@@ -119,10 +120,13 @@ public class ClientUploader {
 				
 				// Create downlaoder thread, start it and save in arrayList (for join and not finish main threaD)
 			
-				ClientDownloader cd = new ClientDownloader(queuePollingName, (chunks));
+				/* NOT INITIATE THE DOWNLOADER
+				 * ClientDownloader cd = new ClientDownloader(queuePollingName, (chunks));
 				Thread cdThread = new Thread(cd);
 				cdThread.start();
 				threadList.add(cdThread);
+				 */
+				
 			}
 			// remove last | in string 
 			listOfProfilesToapply = listOfProfilesToapply.substring(0, (listOfProfilesToapply.length()-1));
@@ -137,11 +141,14 @@ public class ClientUploader {
 			
 			// STEP 8 - Create HTTP Client request + POST REQUESTER (Here use listOfProfilesToapply)
 			HttpClient httpClient = HttpClientBuilder.create().build();
-			String ipSpringServer = "192.168.227.23";
+			System.out.println("Ingrese ip del servidor");
+			Scanner keyboard = new Scanner(System.in);
+			String ipSpringServer = keyboard.nextLine();
+			//String ipSpringServer = "192.168.0.25";
 			
 
 			// STEP 9 - Define URL based on name (base queue) + profiles (to create specific queue)
-			String urlPost = "http://"+ipSpringServer +":8080/uploadChunk?name="+baseQueueName+"&service=videoCompression&queues="+listOfProfilesToapply;
+			String urlPost = "http://"+ipSpringServer +":8080/uploadChunk";
 			
 			System.out.println("URL POST: "+urlPost);
 			HttpURLConnection con = null;
@@ -183,7 +190,9 @@ public class ClientUploader {
 						 */
 			            
 						data = Files.readAllBytes(new File(output).toPath());
-						msg = new Message(baseQueueName, output, i, (chunks+1), service, data, params, null);
+						//System.out.println("PARAMS: "+baseQueueName+":"+output+":"+i+":"+(chunks+1)+":"+ service+":"+ data+":"+ listOfProfilesToapply+":"+ params);
+						
+						msg = new Message(baseQueueName, output, i, (chunks+1), service, data, listOfProfilesToapply, params, null);
 						jsonUt.setObject(msg);
 						msgEncoded = jsonUt.toJson();
 						

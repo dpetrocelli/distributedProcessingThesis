@@ -1,12 +1,15 @@
 package BoostrapRat;
 
+
 public class Message {
+	
 	String originalName;
 	String name;
 	int part;
 	int qParts;
 	String service;
 	byte[] data;
+	String encodingProfiles;
 	String paramsEncoding;
 	String idForAck;
 	String workerName;
@@ -15,8 +18,10 @@ public class Message {
 	long endTime;
 	int totalTime;
 	
+	public Message () {
 	
-	public Message(String originalName, String name, int part, int qParts, String service, byte[] data, String paramsEncoding, String idForAck) {
+	}
+	public Message(String originalName, String name, int part, int qParts, String service, byte[] data, String encodingProfiles, String paramsEncoding, String idForAck) {
 		super();
 		this.originalName = originalName;
 		this.name = name;
@@ -26,6 +31,7 @@ public class Message {
 		this.data = data;
 		this.paramsEncoding = paramsEncoding;
 		this.idForAck = idForAck;
+		this.encodingProfiles = encodingProfiles;
 		
 	}
 	
@@ -46,6 +52,13 @@ public class Message {
 		this.totalTime = totalTime;
 	}
 	
+	public String getEncodingProfiles() {
+		return encodingProfiles;
+	}
+
+	public void setEncodingProfiles(String encodingProfiles) {
+		this.encodingProfiles = encodingProfiles;
+	}
 	
 	public String getWorkerName() {
 		return workerName;

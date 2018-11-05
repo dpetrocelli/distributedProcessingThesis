@@ -1,5 +1,6 @@
 package clientX86;
 
+
 public class Message {
 	
 	String originalName;
@@ -17,7 +18,9 @@ public class Message {
 	long endTime;
 	int totalTime;
 	
+	public Message () {
 	
+	}
 	public Message(String originalName, String name, int part, int qParts, String service, byte[] data, String encodingProfiles, String paramsEncoding, String idForAck) {
 		super();
 		this.originalName = originalName;
@@ -49,6 +52,13 @@ public class Message {
 		this.totalTime = totalTime;
 	}
 	
+	public String getEncodingProfiles() {
+		return encodingProfiles;
+	}
+
+	public void setEncodingProfiles(String encodingProfiles) {
+		this.encodingProfiles = encodingProfiles;
+	}
 	
 	public String getWorkerName() {
 		return workerName;

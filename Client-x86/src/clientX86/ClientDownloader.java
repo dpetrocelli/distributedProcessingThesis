@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class ClientDownloader implements Runnable{
 	int totalParts; 
@@ -20,18 +21,24 @@ public class ClientDownloader implements Runnable{
 	@Override
 	public void run() {
 		this.id = (int) Thread.currentThread().getId();
-		try {
-			Thread.sleep(20000);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		
 		
 		// STEP 0 - Define variables
 		//System.out.println("Client Downloader finished Jobs started");
 		int i = 0;
-		String ipSpringServer = "192.168.227.23";
-		String outputBasePath = "C:\\DTP\\video\\returnedCompressed\\compressed_"+this.id+"_part_";
+		String ipSpringServer = "";
+		System.out.println(" Ingrese direccion IP del servidor ");
+		Scanner keyboard = new Scanner(System.in);
+		ipSpringServer = keyboard.nextLine();
+		String basePath = "";
+		
+		if (System.getProperty("os.name").startsWith("Windows")){
+			basePath  = "C:/DTP/";
+		}else {
+			basePath = "/tmp/";
+		
+		}	
+		String outputBasePath = basePath+"video/returnedCompressed/compressed_"+this.id+"_part_";
 		
 		// STEP 1 - Loop until parts = parameterParts 
 		while (true) {
@@ -82,28 +89,35 @@ public class ClientDownloader implements Runnable{
 				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println(" NO LLEGAMOS A LA URL ");
 			}
 			try {
-				Thread.sleep(500);
+				Thread.sleep(5000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		// STEP 6 - once i've completed parts, i need to rearm the complete file compressed
-		String concatenate = "ffmpeg.exe";
+		String concatenate = "ffmpeg";
 		for (int k=0; k<this.totalParts; k++) {
 			concatenate+=" -i "+outputBasePath+k+".mp4";
 		}
-		concatenate+=" -filter_complex concat=n="+this.totalParts+":v=1:a=1 -y C:\\DTP\\video\\resultJoined\\"+this.fileName+"_CAJ.mp4";
+		concatenate+=" -filter_complex concat=n="+this.totalParts+":v=1:a=1 -y "+basePath+"video/resultJoined/"+this.fileName+"_CAJ.mp4";
 		this.concatenateParts(concatenate);
 		
 		
 	}
 	
 	private void concatenateParts (String command) {
-			String baseFFMpeg = "C:\\DTP\\ffmpeg\\bin\\";
+			
+			String basePath;
+			if (System.getProperty("os.name").startsWith("Windows")){
+				basePath  = "C:/DTP/";
+			}else {
+				basePath = "/tmp/";
+			}	
+			String baseFFMpeg = basePath+"ffmpeg/bin/";
 			String task = baseFFMpeg+command;
 			System.err.println("TASK: "+task);
 			Process powerShellProcess;
@@ -128,12 +142,12 @@ public class ClientDownloader implements Runnable{
 		ClientDownloader cd;
 		Thread cdThread;
 		
-		cd = new ClientDownloader("u3059_OriginalVideo_480", 500);
+		/*cd = new ClientDownloader("u3059_OriginalVideo_480", 500);
 		cdThread = new Thread(cd);
 		cdThread.start();
 		threadList.add(cdThread);
-
-		cd = new ClientDownloader("u3059_OriginalVideo_240", 500);
+*/
+		cd = new ClientDownloader("u3059_bigbuckbunny_1500_240", 500);
 		cdThread = new Thread(cd);
 		cdThread.start();
 		threadList.add(cdThread);
