@@ -162,9 +162,9 @@ public class WorkerAndroidManager {
 
             long taskInitTime, taskEndTime;
 
-            taskInitTime = System.currentTimeMillis()/1000;
+            taskInitTime = System.currentTimeMillis();
             ffm.doWork(context, params, outputFolder + outputFileName);
-            taskEndTime = System.currentTimeMillis()/1000;
+            taskEndTime = System.currentTimeMillis();
 
             /*
             int i = 0;
