@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,10 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.rabbitmq.client.AMQP.Queue.DeclareOk;
-
-
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -103,11 +97,14 @@ public class DistributedRestController {
 		malThread.start();
 			
 		
-		this.readFromFile (filterParameters, "src/main/java/BoostrapRat/videoParameters");
+		//this.readFromFile (filterParameters, "src/main/java/videoParameters");
+		this.readFromContext (filterParameters);
 		
 	}
 	
 	
+	
+
 	private String obtainIpAddress(String baseRegex) {
 		String command = null;
         if(System.getProperty("os.name").equals("Linux"))
@@ -194,7 +191,7 @@ public class DistributedRestController {
 		  	
 		  	try {
 
-		  		this.enterChannel.queueDeclare(this.enterQueue, durable, false, false, null);
+		  		this.enterChannel.queueDeclare(DistributedRestController.enterQueue, durable, false, false, null);
 				
 				// STEP 2 - obtain each filter
 				String[] filters = msgRearmed.getEncodingProfiles().split(Pattern.quote("_"));
@@ -212,7 +209,7 @@ public class DistributedRestController {
 					jsonUt.setObject(msgRearmed);
 					msgEncoded = jsonUt.toJson();
 					// STEP 4.1 - Save in normal queue 
-					this.enterChannel.basicPublish("", this.enterQueue, MessageProperties.PERSISTENT_TEXT_PLAIN, msgEncoded.getBytes());
+					this.enterChannel.basicPublish("", DistributedRestController.enterQueue, MessageProperties.PERSISTENT_TEXT_PLAIN, msgEncoded.getBytes());
 					System.out.println(" MSG: saved in enteredQueue" );
 					
 					// STEP 5 - Create (or not) the specific finishedQueue 
@@ -241,9 +238,9 @@ public class DistributedRestController {
 		String response = null;
 		try {
 			
-				if (this.enterChannel.queueDeclarePassive(this.enterQueue).getMessageCount()>0) {
+				if (this.enterChannel.queueDeclarePassive(DistributedRestController.enterQueue).getMessageCount()>0) {
 					//data = this.enterChannel.basicGet(this.enterQueue, true);
-					data = this.enterChannel.basicGet(this.enterQueue,false);
+					data = this.enterChannel.basicGet(DistributedRestController.enterQueue,false);
 					
 					long idForAck = data.getEnvelope().getDeliveryTag();
 					long timestamp  = (new Timestamp(System.currentTimeMillis())).getTime();
@@ -347,40 +344,31 @@ public class DistributedRestController {
 	  }
 	 
    
+	private void readFromContext(HashMap<String, ArrayList<String>> filterParameters2) {
+		// TODO Auto-generated method stub
+		
+	}
+
 	
 	private void readFromFile(HashMap<String,ArrayList<String>> filterParameters, String file) {
 		// TODO Auto-generated method stub
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new FileReader(file));
-			ArrayList<String> parameters;
-			
-		    String line = br.readLine();
-
-		    while (line != null) {
-		        String[] partsParameters = line.split(Pattern.quote("|"));
-		        parameters = new ArrayList<String>();
-		        for (int i=1; i<(partsParameters.length); i++) parameters.add(partsParameters[i]);
-		        filterParameters.put(partsParameters[0], parameters);
-		        
-		        // After fullfill line, read next
-		        line = br.readLine();
-		    }
-		   
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-		    try {
-				br.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		ArrayList<String> values = new ArrayList<String>();
+		values.add("240");
+		values.add("baseline");
+		values.add("424x240");
+		values.add("libx264");
+		values.add("500");
+		values.add("3.0");
+		values.add("24");
+		values.add("ultrafast");
+		values.add("0");
+		values.add("0");
+		values.add("0");
+		values.add("aac");
+		values.add("128");
+		values.add("44100");
+		values.add("24k");
+		filterParameters.put("240", values);
 		
 		
 		    
