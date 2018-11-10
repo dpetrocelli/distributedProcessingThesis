@@ -53,130 +53,13 @@ public class WorkerAndroidManager {
         logMessage(TAG, " obteniendo trabajo de la cola ");
         newTask = this.getJobFromQueue(serverSource, workerName);
 
+        newTask.setWorkerName(workerName);
+        newTask.setWorkerArchitecture(System.getProperty("os.arch"));
+
         logMessage(TAG, " procesando tarea ");
         taskResult = this.processTask(newTask);
 
         logMessage(TAG, " subiendo resultado a la cola ");
-        this.putJobResultIntoQueue(serverDestination, workerName, taskResult);
-
-    }
-
-    private void processTask_NEW(JobMessage task, String serverDestination, String workerName) {
-
-        StorageManager sm = StorageManager.getInstance();
-
-        String downloadFolder = Environment.getExternalStorageDirectory() + File.separator + "WorkerAndroid" + File.separator + "temp" + File.separator;
-        String outputFolder = Environment.getExternalStorageDirectory() + File.separator + "WorkerAndroid" + File.separator + "temp" + File.separator;
-        String extension = ".mp4";
-
-        String downloadedFileName = "temporal_" + task.name + "_" + task.getPart() + extension;
-        String outputFileName = task.getService() + "_" + task.name + "_" + task.getPart() + extension;
-
-        JsonUtility jsonUt = new JsonUtility();
-
-        jsonUt.setObject(task);
-
-        //proccess something
-        //logMessage(TAG, " guardando archivo " + downloadFolder + downloadedFileName);
-        sm.saveToFileSystem(task.getData(), downloadFolder, downloadedFileName);
-
-
-        // Obtain parameters from msg
-        String parametersFromMsg = task.getParamsEncoding();
-        //logMessage(TAG, "parameterFromMsg: " + parametersFromMsg);
-
-        parametersFromMsg = parametersFromMsg.substring(1, ((parametersFromMsg.length() - 1)));
-        //logMessage(TAG, "parameterFromMsg: " + parametersFromMsg);
-
-        String[] paramsPart = parametersFromMsg.split(Pattern.quote(","));
-
-/*
-        String params = " -loglevel quiet"
-                +" -y"
-                + " -i " + downloadFolder + downloadedFileName
-                + " -s" + paramsPart[1]
-                + " -aspect 16:9 -c:v" + paramsPart[2]
-                + " -g 50 -b:v" + paramsPart[3]
-                + "k -profile:v " + paramsPart[0]
-                + " -level"  + paramsPart[4]
-                + " -r" + paramsPart[5]
-                + " -preset" + paramsPart[6]
-                + " -threads 0"
-                + " -c:a aac"
-                + " -strict experimental"
-                + " -b:a" + paramsPart[11] + "k"
-                + " -ar" + paramsPart[12]
-                + " -ac" + paramsPart[13]
-                + " " + outputFolder + outputFileName;
-*/
-
-        String[] params =
-                {"-loglevel", "info"
-                        //params[2]= "-y";
-                        , "-i", downloadFolder + downloadedFileName
-                        , "-s", paramsPart[1]
-                        , "-aspect", "16:9", "-c:v", paramsPart[2].trim()
-                        //params[6]= "-g 50";
-                        //params[6]= "-b:v" + paramsPart[3] + "k";
-                        //params[7]= "-profile:v " + paramsPart[0];
-                        //params[8]= "-level"  + paramsPart[4];
-                        //params[9]= "-r" + paramsPart[5];
-                        //params[10]= "-preset" + paramsPart[6];
-                        //params[11]= "-threads 0";
-                        //params[12]= "-c:a aac";
-                        //params[13]= "-strict experimental";
-                        //params[14]= "-b:a" + paramsPart[11] + "k";
-                        //params[15]= "-ar" + paramsPart[12];
-                        //params[16]= "-ac" + paramsPart[13];
-                        , outputFolder + "tempFileProcessed.mp4"
-                };
-
-        //logMessage(TAG,"params: " + params);
-
-        //powerShellProcess = Runtime.getRuntime().exec(params);
-        //proccess something
-        String[] ffmpegParams = {"-i"
-                , downloadFolder + downloadedFileName
-                , outputFolder + outputFileName};
-
-        FFMpegManager ffm = (FFMpegManager.getInstance());
-
-        //logMessage(TAG, "setting up logger: ");
-        ffm.setLogger(logger);
-
-        //logMessage(TAG, "doing work: ");
-        //logMessage(TAG, "ffmpegParams: ");
-        //logMessage(TAG, "ffmpegParams 1: " + ffmpegParams[0]);
-        //logMessage(TAG, "ffmpegParams 2: " + ffmpegParams[1]);
-        //logMessage(TAG, "ffmpegParams 3: " + ffmpegParams[2]);
-
-        ffm.setStorageManager(sm);
-
-        ffm.doWork(context, params, outputFolder + outputFileName);
-
-        File file = new File(outputFolder + outputFileName);
-
-        synchronized (this) {
-            while (!file.exists()) {
-                //logMessage(TAG, " esperando archivo " + outputFolder + outputFileName);
-
-                try {
-                    wait(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    logMessage(TAG,e.getMessage());
-                }
-            }
-        }
-
-        //logMessage(TAG, " obteniendo archivo " + outputFolder + outputFileName);
-        byte[] data= sm.getFromFileSystem(outputFolder,outputFileName);
-
-        JobMessage taskResult = new JobMessage(task.getOriginalName(), task.getName(), task.getPart(), task.getqParts(), task.getService(), data, task.getParamsEncoding(), task.getIdForAck());
-
-        jsonUt.setObject(taskResult);
-
-        //logMessage(TAG, " subiendo resultado a la cola ");
         this.putJobResultIntoQueue(serverDestination, workerName, taskResult);
 
     }
@@ -276,7 +159,12 @@ public class WorkerAndroidManager {
             //logMessage(TAG, "setting up logger: ");
             ffm.setLogger(logger);
             ffm.setStorageManager(sm);
+
+            long taskInitTime, taskEndTime;
+
+            taskInitTime = System.currentTimeMillis()/1000;
             ffm.doWork(context, params, outputFolder + outputFileName);
+            taskEndTime = System.currentTimeMillis()/1000;
 
             /*
             int i = 0;
@@ -299,7 +187,21 @@ public class WorkerAndroidManager {
             //logMessage(TAG, " obteniendo archivo " + outputFolder + outputFileName);
             byte[] data = sm.getFromFileSystem(outputFolder, outputFileName);
 
-            JobMessage taskResult = new JobMessage(task.getOriginalName(), task.getName(), task.getPart(), task.getqParts(), task.getService(), data, task.getParamsEncoding(), task.getIdForAck());
+            JobMessage taskResult =
+                    new JobMessage(
+                            task.getOriginalName()
+                            , task.getName()
+                            , task.getPart()
+                            , task.getqParts()
+                            , task.getService()
+                            , data
+                            , task.getParamsEncoding()
+                            , task.getIdForAck()
+                            , task.getWorkerName()
+                            , task.getWorkerArchitecture()
+                            , taskInitTime
+                            , taskEndTime
+                            ,(int) (taskEndTime-taskInitTime));
 
             jsonUt.setObject(taskResult);
 
@@ -395,7 +297,10 @@ public class WorkerAndroidManager {
             String msgEncoded = jsonUt.toJson();
             //logMessage(TAG, " mensaje " + msgEncoded);
 
+            /*
             URL url = new URL("http://" + serverDestination + "/uploadFinishedJob?server=" + workerName + "&name=" + message.getName() + "&part=" + (message.getName() + "_part_" + message.getPart() + "&idForAck=" + message.getIdForAck()));
+            */
+            URL url = new URL("http://" + serverDestination + "/uploadFinishedJob");
 
             //logMessage(TAG, " Estableciendo conexion a " + url);
             httpConn = (HttpURLConnection) url.openConnection();
