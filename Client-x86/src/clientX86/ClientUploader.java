@@ -11,6 +11,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -48,6 +49,10 @@ public class ClientUploader {
 	        }
 	    }
 		
+	    System.out.println("Ingrese ip del servidor");
+		Scanner keyboard = new Scanner(System.in);
+		String ipSpringServer = keyboard.nextLine();
+		
 		ArrayList<Thread> threadList = new ArrayList<Thread>();
 		// STEP 0 - Define FFMpeg Path
 		
@@ -56,7 +61,9 @@ public class ClientUploader {
 			
 			// STEP 1 - Obtain ID for the activities
 			//int id = ThreadLocalRandom.current().nextInt(0, 100000);
-			int id = 3059;
+			
+			Random ran = new Random(); 
+			int id = ran.nextInt(100000); 
 			
 			// STEP 2 - Define videoPath (1 per client up to now)
 			String videoPath = videoFile;
@@ -120,12 +127,11 @@ public class ClientUploader {
 				
 				// Create downlaoder thread, start it and save in arrayList (for join and not finish main threaD)
 			
-				/* NOT INITIATE THE DOWNLOADER
-				 * ClientDownloader cd = new ClientDownloader(queuePollingName, (chunks));
+				ClientDownloader cd = new ClientDownloader(ipSpringServer, queuePollingName, (chunks));
 				Thread cdThread = new Thread(cd);
 				cdThread.start();
 				threadList.add(cdThread);
-				 */
+				 
 				
 			}
 			// remove last | in string 
@@ -141,9 +147,7 @@ public class ClientUploader {
 			
 			// STEP 8 - Create HTTP Client request + POST REQUESTER (Here use listOfProfilesToapply)
 			HttpClient httpClient = HttpClientBuilder.create().build();
-			System.out.println("Ingrese ip del servidor");
-			Scanner keyboard = new Scanner(System.in);
-			String ipSpringServer = keyboard.nextLine();
+			
 			//String ipSpringServer = "192.168.0.25";
 			
 
@@ -191,7 +195,7 @@ public class ClientUploader {
 			            
 						data = Files.readAllBytes(new File(output).toPath());
 						//System.out.println("PARAMS: "+baseQueueName+":"+output+":"+i+":"+(chunks+1)+":"+ service+":"+ data+":"+ listOfProfilesToapply+":"+ params);
-						
+						System.out.println(" SENDING PART "+i);
 						msg = new Message(baseQueueName, output, i, (chunks+1), service, data, listOfProfilesToapply, params, null);
 						jsonUt.setObject(msg);
 						msgEncoded = jsonUt.toJson();
@@ -229,7 +233,7 @@ public class ClientUploader {
 				            
 				            con.disconnect();
 				        }
-					
+				System.out.println("CHUNK "+i+" has been sent");	
 				}
 				
 			

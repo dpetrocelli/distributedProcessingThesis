@@ -13,23 +13,32 @@ import java.util.Scanner;
 public class ClientDownloader implements Runnable{
 	int totalParts; 
 	String fileName;
+	String ipSpringServer;
 	int id;
-	public ClientDownloader (String fileName, int totalParts) {
+	
+	public ClientDownloader (String ipSpringServer, String fileName, int totalParts) {
+		this.ipSpringServer = ipSpringServer;
 		this.fileName = fileName;
 		this.totalParts = totalParts;
 	}
 	@Override
 	public void run() {
+		try {
+			Thread.sleep(100000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		this.id = (int) Thread.currentThread().getId();
 		
 		
 		// STEP 0 - Define variables
 		//System.out.println("Client Downloader finished Jobs started");
 		int i = 0;
-		String ipSpringServer = "";
-		System.out.println(" Ingrese direccion IP del servidor ");
-		Scanner keyboard = new Scanner(System.in);
-		ipSpringServer = keyboard.nextLine();
+		
+		//System.out.println(" Ingrese direccion IP del servidor ");
+		//Scanner keyboard = new Scanner(System.in);
+		//ipSpringServer = "192.168.0.25";//keyboard.nextLine();
 		String basePath = "";
 		
 		if (System.getProperty("os.name").startsWith("Windows")){
@@ -80,6 +89,12 @@ public class ClientDownloader implements Runnable{
 					if (i==this.totalParts) break;
 				}catch (Exception e) {
 					System.err.println("NO INFO");
+					try {
+						Thread.sleep(30000);
+					} catch (InterruptedException e2) {
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
 				}
 				
 				
@@ -91,12 +106,7 @@ public class ClientDownloader implements Runnable{
 				// TODO Auto-generated catch block
 				System.out.println(" NO LLEGAMOS A LA URL ");
 			}
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			
 		}
 		// STEP 6 - once i've completed parts, i need to rearm the complete file compressed
 		String concatenate = "ffmpeg";
@@ -136,31 +146,5 @@ public class ClientDownloader implements Runnable{
 			
 	}
 
-	public static void main(String[] args) {
-
-		ArrayList<Thread> threadList = new ArrayList<Thread>();
-		ClientDownloader cd;
-		Thread cdThread;
-		
-		/*cd = new ClientDownloader("u3059_OriginalVideo_480", 500);
-		cdThread = new Thread(cd);
-		cdThread.start();
-		threadList.add(cdThread);
-*/
-		cd = new ClientDownloader("u3059_bigbuckbunny_1500_240", 500);
-		cdThread = new Thread(cd);
-		cdThread.start();
-		threadList.add(cdThread);
-
-		// wait for all downloaded threads
-		for (Thread t : threadList) {
-			try {
-				t.join();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-	}
+	
 }

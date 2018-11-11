@@ -64,7 +64,7 @@ public class DistributedRestController {
 		if (!(ipAddress.length()>5)) {
 			ipAddress = this.obtainIpAddress("10.1.");
 		}
-		
+
 		this.factory = new ConnectionFactory();
 		this.factory.setHost(ipAddress);
 		this.factory.setUsername("admin");
@@ -91,15 +91,15 @@ public class DistributedRestController {
 		this.AckService = new HashMap<Long, Long>();
 		// ACTIVATE THREAD FOR LOOPING AND DELETING UNCORRESPONDANT MSG
 		int timeCheckInterval = 15*1000;
-		int timeoutPackage = 60*1000;
+		int timeoutPackage = 120*1000;
 		ManageAckList mal = new ManageAckList (this.enterChannel, this.AckService, timeCheckInterval, timeoutPackage);
 		Thread malThread = new Thread (mal);
 		malThread.start();
 			
 		
-		//this.readFromFile (filterParameters, "src/main/java/videoParameters");
+		//this.readFromFile (filterParameters, "src/main/resources/videoParameters");
 		this.readFromContext (filterParameters);
-		
+		System.out.println("FILTER:"+filterParameters.toString());
 	}
 	
 	
@@ -179,9 +179,11 @@ public class DistributedRestController {
 	//@RequestParam("name") String name, @RequestParam("queues") String queuesList	
 			
 			// STEP 1 - Rearm MSG
+			
 			JsonUtility jsonUt = new JsonUtility();
 			jsonUt.setType("Message");
 			Message msgRearmed = (Message) jsonUt.fromJson(msg);
+			System.out.println("MSG REARMED");
 			
 			String name = msgRearmed.getOriginalName();
 					
@@ -190,15 +192,16 @@ public class DistributedRestController {
 		  	String msgEncoded;
 		  	
 		  	try {
-
+		  		
 		  		this.enterChannel.queueDeclare(DistributedRestController.enterQueue, durable, false, false, null);
-				
+		  		System.out.println("2 QUEUE DECLARED");
 				// STEP 2 - obtain each filter
+		  		
 				String[] filters = msgRearmed.getEncodingProfiles().split(Pattern.quote("_"));
 				String parameters=null;
 				
 				
-				
+			
 				// FOR EACH FILTER -> take params from the arraylist and put in msg structure
 				for (String filter : filters) {
 					// STEP 4.0 - Rearm msg parameters
@@ -208,9 +211,12 @@ public class DistributedRestController {
 					msgRearmed.setName(name+"_"+filter);
 					jsonUt.setObject(msgRearmed);
 					msgEncoded = jsonUt.toJson();
+					System.out.println("MSG ENCODED OK");
 					// STEP 4.1 - Save in normal queue 
+				
 					this.enterChannel.basicPublish("", DistributedRestController.enterQueue, MessageProperties.PERSISTENT_TEXT_PLAIN, msgEncoded.getBytes());
 					System.out.println(" MSG: saved in enteredQueue" );
+					
 					
 					// STEP 5 - Create (or not) the specific finishedQueue 
 					finishedSpecificQueue=name+"_"+filter;
@@ -223,7 +229,7 @@ public class DistributedRestController {
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e.getMessage();
 			}
 
 			return "ok - Ready";
@@ -346,35 +352,69 @@ public class DistributedRestController {
    
 	private void readFromContext(HashMap<String, ArrayList<String>> filterParameters2) {
 		// TODO Auto-generated method stub
+				String par = "4k|high|4096x2160|libx264|15600|5.1|60|veryslow|6|3|2|ac3|512|48000|6";
+				par+="//2K|high|2560x1440|libx264|7800|5.1|48|slower|6|3|2|ac3|512|48000|6";
+				par+="//hd|high|1920x1080|libx264|3900|4.1|30|slow|6|3|2|ac3|320|48000|6";
+				par+="//720|main|1280x720|libx264|2000|4.1|25|medium|3|3|1|aac|320|44100|2";
+				par+="//480|main|852x480|libx264|900|3.1|25|fast|3|3|1|aac|256|44100|2";
+				par+="//360|baseline|640x360|libx264|700|3.0|24|faster|0|0|0|aac|128|44100|2";
+				par+="//240|baseline|424x240|libx264|500|3.0|24|ultrafast|0|0|0|aac|128|44100|2";
+				
+				String[] eachParam = par.split(Pattern.quote("//"));
+				// this is grouped per line
+				for (String string : eachParam) {
+					String[] eachLineParts = string.split(Pattern.quote("|"));
+					// 1st, header, 2nd parameters
+					ArrayList<String> values = new ArrayList<String>();
+					for (int i =1; i<eachLineParts.length; i++) {
+						values.add(eachLineParts[i]);
+					}
+					filterParameters.put(eachLineParts[0], values);
+				}
+				
+				
+				
 		
 	}
 
-	
 	private void readFromFile(HashMap<String,ArrayList<String>> filterParameters, String file) {
 		// TODO Auto-generated method stub
-		ArrayList<String> values = new ArrayList<String>();
-		values.add("240");
-		values.add("baseline");
-		values.add("424x240");
-		values.add("libx264");
-		values.add("500");
-		values.add("3.0");
-		values.add("24");
-		values.add("ultrafast");
-		values.add("0");
-		values.add("0");
-		values.add("0");
-		values.add("aac");
-		values.add("128");
-		values.add("44100");
-		values.add("24k");
-		filterParameters.put("240", values);
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(file));
+			ArrayList<String> parameters;
+			
+		    String line = br.readLine();
+
+		    while (line != null) {
+		        String[] partsParameters = line.split(Pattern.quote("|"));
+		        parameters = new ArrayList<String>();
+		        for (int i=1; i<(partsParameters.length); i++) parameters.add(partsParameters[i]);
+		        filterParameters.put(partsParameters[0], parameters);
+		        
+		        // After fullfill line, read next
+		        line = br.readLine();
+		    }
+		   
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+		    try {
+				br.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		
 		
 		    
 	}
- 
-  
+	
   
   
 }
