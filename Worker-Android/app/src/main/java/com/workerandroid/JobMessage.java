@@ -1,18 +1,26 @@
 package com.workerandroid;
 
 public class JobMessage {
+	
 	String originalName;
 	String name;
 	int part;
 	int qParts;
 	String service;
 	byte[] data;
+	String encodingProfiles;
 	String paramsEncoding;
 	String idForAck;
-
-
-
-	public JobMessage(String originalName, String name, int part, int qParts, String service, byte[] data, String paramsEncoding, String idForAck) {
+	String workerName;
+	String workerArchitecture;
+	long  initTime;
+	long endTime;
+	int totalTime;
+	
+	public JobMessage () {
+	
+	}
+	public JobMessage(String originalName, String name, int part, int qParts, String service, byte[] data, String encodingProfiles, String paramsEncoding, String idForAck) {
 		super();
 		this.originalName = originalName;
 		this.name = name;
@@ -22,15 +30,82 @@ public class JobMessage {
 		this.data = data;
 		this.paramsEncoding = paramsEncoding;
 		this.idForAck = idForAck;
-
+		this.encodingProfiles = encodingProfiles;
+		
 	}
-	public String getIdForAck() {
+	
+	public JobMessage(String originalName, String name, int part, int qParts, String service, byte[] data, String paramsEncoding, String idForAck, String workerName, String workerArchitecture, long initTime, long endTime, int executionTime) {
+		super();
+		this.originalName = originalName;
+		this.name = name;
+		this.part = part;
+		this.qParts = qParts;
+		this.service = service;
+		this.data = data;
+		this.paramsEncoding = paramsEncoding;
+		this.idForAck = idForAck;
+		this.workerName = workerName;
+		this.workerArchitecture = workerArchitecture;
+		this.initTime = initTime;
+		this.endTime = endTime;
+		this.totalTime = executionTime;
+	}
+	
+	public String getEncodingProfiles() {
+		return encodingProfiles;
+	}
+
+	public void setEncodingProfiles(String encodingProfiles) {
+		this.encodingProfiles = encodingProfiles;
+	}
+	
+	public String getWorkerName() {
+		return workerName;
+	}
+
+	public void setWorkerName(String workerName) {
+		this.workerName = workerName;
+	}
+
+	public String getWorkerArchitecture() {
+		return workerArchitecture;
+	}
+
+	public void setWorkerArchitecture(String workerArchitecture) {
+		this.workerArchitecture = workerArchitecture;
+	}
+
+	public long getInitTime() {
+		return initTime;
+	}
+
+	public void setInitTime(long initTime) {
+		this.initTime = initTime;
+	}
+
+	public long getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(long endTime) {
+		this.endTime = endTime;
+	}
+
+	public int getTotalTime() {
+		return totalTime;
+	}
+
+	public void setTotalTime(int totalTime) {
+		this.totalTime = totalTime;
+	}
+
+		public String getIdForAck() {
 		return idForAck;
 	}
 	public void setIdForAck(String idForAck) {
 		this.idForAck = idForAck;
 	}
-	public String getOriginalName() {
+		public String getOriginalName() {
 		return originalName;
 	}
 	public void setOriginalName(String originalName) {
@@ -72,7 +147,7 @@ public class JobMessage {
 	public void setParamsEncoding(String paramsEncoding) {
 		this.paramsEncoding = paramsEncoding;
 	}
-
+	
 
 
 }
