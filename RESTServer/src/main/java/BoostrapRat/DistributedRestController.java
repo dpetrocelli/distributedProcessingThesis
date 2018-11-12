@@ -4,9 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
@@ -23,6 +26,8 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.MessageProperties;
+import com.rabbitmq.http.client.Client;
+import com.rabbitmq.http.client.domain.QueueInfo;
 
 @RestController
 public class DistributedRestController {
@@ -35,6 +40,9 @@ public class DistributedRestController {
 	Channel enterChannel;
 	Connection pendantConnection;
 	Channel pendantChannel;
+	String ipAddress;
+	String username;
+	String password;
 	// END RABBIT DATA
 	
 	// INIT DB DATA
@@ -60,15 +68,17 @@ public class DistributedRestController {
 		// END DATABASE INITIALIZATION
 		
 		// OBTAIN IP ADDRESS (LAN )
-		String ipAddress = this.obtainIpAddress("192.168");
+		ipAddress = this.obtainIpAddress("192.168");
 		if (!(ipAddress.length()>5)) {
 			ipAddress = this.obtainIpAddress("10.1.");
 		}
 
 		this.factory = new ConnectionFactory();
 		this.factory.setHost(ipAddress);
-		this.factory.setUsername("admin");
-		this.factory.setPassword("admin");
+		this.username= "admin";
+		this.password = "admin";
+		this.factory.setUsername(this.username);
+		this.factory.setPassword(this.password);
 		try {
 			// connection and Channels
 			this.enterConnection = this.factory.newConnection();
@@ -138,7 +148,29 @@ public class DistributedRestController {
 		return ip;
 	}
 
-
+	// Client -> Obtaining it queue tasks
+	
+	@RequestMapping(value = "/getListTasks", method = RequestMethod.GET)
+	public ArrayList<String> getListTasks(@RequestParam("name") String name) {
+		System.out.println(" METHOD - GET LIST TASKS");
+		ArrayList<String> result = new ArrayList<String>();
+		try {
+			Client c = new Client("http://"+this.ipAddress+":15672/api/", this.username, this.password);
+			List<QueueInfo> listQueues = c.getQueues();
+			for (QueueInfo queueInfo : listQueues) {
+				result.add(queueInfo.getName());
+			}
+			
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+		
+	}
 	// Client -> Obtain Finished Task (OK) 
 	@RequestMapping(value = "/getEndTasks", method = RequestMethod.GET)
 	public String getFinishedTask(@RequestParam("name") String name) {
@@ -342,7 +374,7 @@ public class DistributedRestController {
 			
 			// SET DATA IN DATABASE
 			
-			String query = "insert into jobTracker values ('"+msgRearmed.getService()+"', '"+msgRearmed.getName()+'_'+msgRearmed.getPart()+"', '"+msgRearmed.getWorkerName()+"','"+msgRearmed.getWorkerArchitecture()+"',"+msgRearmed.getInitTime()+","+msgRearmed.getEndTime()+","+msgRearmed.getTotalTime()+")";
+			String query = "insert into jobTracker (service, job, workerName, workerArchitecture, initTime, endTime, executionTime) values ('"+msgRearmed.getService()+"', '"+msgRearmed.getName()+'_'+msgRearmed.getPart()+"', '"+msgRearmed.getWorkerName()+"','"+msgRearmed.getWorkerArchitecture()+"',"+msgRearmed.getInitTime()+","+msgRearmed.getEndTime()+","+msgRearmed.getTotalTime()+")";
 			System.out.println(" SQL: "+query);
 			this.mdbc.doInsertOperation(query);
 			// CONTINUE HERE

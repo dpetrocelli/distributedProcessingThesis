@@ -10,6 +10,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import javax.swing.text.StyleContext.SmallAttributeSet;
+
 public class ClientDownloader implements Runnable{
 	int totalParts; 
 	String fileName;
@@ -23,12 +25,7 @@ public class ClientDownloader implements Runnable{
 	}
 	@Override
 	public void run() {
-		try {
-			Thread.sleep(100000);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		
 		this.id = (int) Thread.currentThread().getId();
 		
 		

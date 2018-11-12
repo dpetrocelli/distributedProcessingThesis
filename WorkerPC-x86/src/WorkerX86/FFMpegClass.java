@@ -32,7 +32,7 @@ public class FFMpegClass {
 		this.idForAck = idForAck;
 		this.ipSpringServer = ipSpringServer; 
 		this.con = con;
-		timestamp = new Timestamp(System.currentTimeMillis()); 
+		
 		initTime = initTime;
 		
 		// STEP 2.5 - Save the queue where i must reply my msg
@@ -106,7 +106,7 @@ public class FFMpegClass {
 			*/
 			System.out.println(" STEP 6 -  POST (push) to userQueueFile ");
 			
-			long endTime = timestamp.getTime();
+			long endTime = System.currentTimeMillis();
 			String osType= System.getProperty("os.arch");
 	        
 			/*

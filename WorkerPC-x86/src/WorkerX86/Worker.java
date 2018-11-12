@@ -49,8 +49,8 @@ public class Worker {
 					} in.close();
 					   //print in String
 					System.out.println(" STEP 1 -  Job Obtained ");
-					Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-					long initTime = timestamp.getTime();
+					
+					long initTime = System.currentTimeMillis();
 				
 					String msgNotEncoded = response.toString();
 					System.out.println(msgNotEncoded.substring(msgNotEncoded.length()-10, msgNotEncoded.length()));

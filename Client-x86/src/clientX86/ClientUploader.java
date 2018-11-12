@@ -49,10 +49,14 @@ public class ClientUploader {
 	        }
 	    }
 		
+	    Scanner keyboard = new Scanner(System.in);
+	    
 	    System.out.println("Ingrese ip del servidor");
-		Scanner keyboard = new Scanner(System.in);
 		String ipSpringServer = keyboard.nextLine();
 		
+		System.out.println("Ingrese su usuario ");
+		String id = keyboard.nextLine();
+		 
 		ArrayList<Thread> threadList = new ArrayList<Thread>();
 		// STEP 0 - Define FFMpeg Path
 		
@@ -62,8 +66,7 @@ public class ClientUploader {
 			// STEP 1 - Obtain ID for the activities
 			//int id = ThreadLocalRandom.current().nextInt(0, 100000);
 			
-			Random ran = new Random(); 
-			int id = ran.nextInt(100000); 
+			
 			
 			// STEP 2 - Define videoPath (1 per client up to now)
 			String videoPath = videoFile;
@@ -73,11 +76,10 @@ public class ClientUploader {
 			
 			// STEP 2.6 - Select filters to apply
 			ArrayList<String> filterSelected = new ArrayList<String>();
-			//filterSelected.add("hd");
-			//filterSelected.add("480"); 
+			filterSelected.add("hd");
+			filterSelected.add("480"); 
 			filterSelected.add("240");
-			// STEP 3 - Define base for queueName (then add jobNumber)
-			String baseQueueName = "u"+id+"_"+videoName;
+			
 			
 			timeStart = System.currentTimeMillis();
 			
@@ -93,6 +95,8 @@ public class ClientUploader {
 			// STEP 7 -  Obtain numberOfChunks (duration/chunks)
 			int chunks = (int) (videoDuration/chunkDuration);
 			
+			// STEP 3 - Define base for queueName (then add jobNumber)
+			String baseQueueName = id+"_"+chunks+"_"+videoName;
 			// Only per now chunks , then must be +1
 			//ClientDownloader cd = new ClientDownloader(fileName, (chunks+1));
 			
@@ -127,11 +131,11 @@ public class ClientUploader {
 				
 				// Create downlaoder thread, start it and save in arrayList (for join and not finish main threaD)
 			
-				ClientDownloader cd = new ClientDownloader(ipSpringServer, queuePollingName, (chunks));
+				/*ClientDownloader cd = new ClientDownloader(ipSpringServer, queuePollingName, (chunks));
 				Thread cdThread = new Thread(cd);
 				cdThread.start();
 				threadList.add(cdThread);
-				 
+				 */
 				
 			}
 			// remove last | in string 
