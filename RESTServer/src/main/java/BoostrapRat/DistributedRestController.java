@@ -72,7 +72,10 @@ public class DistributedRestController {
 		if (!(ipAddress.length()>5)) {
 			ipAddress = this.obtainIpAddress("10.1.");
 		}
-
+		System.err.println("IP: "+ipAddress);
+		System.err.println("IP: "+ipAddress);
+		System.err.println("IP: "+ipAddress);
+		System.err.println("IP: "+ipAddress);
 		this.factory = new ConnectionFactory();
 		this.factory.setHost(ipAddress);
 		this.username= "admin";
