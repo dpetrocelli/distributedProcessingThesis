@@ -12,4 +12,6 @@ mkdir /tmp/video/inputQueue
 chmod 777 -R /tmp/ffmpeg
 chmod 777 -R /tmp/video
 cp bigbuckbunny_1500.mp4 /tmp/video/inputQueue
-cp -r ffmpeg-git-20181025-64bit-static/* /tmp/ffmpeg/bin
+cp -r ffmpeg /tmp/ffmpeg/bin
+cp -r ffprobe /tmp/ffmpeg/bin
+chmod 777 -R /tmp/ffmpeg
