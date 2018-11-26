@@ -4,8 +4,10 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,15 +69,9 @@ public class DistributedRestController {
 		
 		// END DATABASE INITIALIZATION
 		
-		// OBTAIN IP ADDRESS (LAN )
-		ipAddress = this.obtainIpAddress("192.168");
-		if (!(ipAddress.length()>5)) {
-			ipAddress = this.obtainIpAddress("10.1.");
-		}
-		System.err.println("IP: "+ipAddress);
-		System.err.println("IP: "+ipAddress);
-		System.err.println("IP: "+ipAddress);
-		System.err.println("IP: "+ipAddress);
+		ipAddress = this.obtainIpAddress();
+		
+		
 		this.factory = new ConnectionFactory();
 		this.factory.setHost(ipAddress);
 		this.username= "admin";
@@ -118,37 +114,34 @@ public class DistributedRestController {
 	
 	
 
-	private String obtainIpAddress(String baseRegex) {
-		String command = null;
-        if(System.getProperty("os.name").equals("Linux"))
-            command = "ip a";
-        else
-            command = "ipconfig";
-        Runtime r = Runtime.getRuntime();
-        Process p = null;
+	private String obtainIpAddress() {
+		String ipAddr = ""; 
 		try {
-			p = r.exec(command);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        Scanner s = new Scanner(p.getInputStream());
+			 
+			 ArrayList<String> ipList = new ArrayList<String>();
+			  InetAddress localhost = InetAddress.getLocalHost();
+			  // Just in case this host has multiple IP addresses....
+			  InetAddress[] allMyIps = InetAddress.getAllByName(localhost.getCanonicalHostName());
+			  if (allMyIps != null && allMyIps.length > 1) {
+				  System.out.println(" Full list of IP addresses:");
+			    for (int i = 0; i < allMyIps.length; i++) {
+			    	String ip =  allMyIps[i].getHostAddress();
+			    	if (!(ip.startsWith("fe"))) {
+			    		ipList.add(ip);
+			    		 System.out.println("["+i+"] - "+ip);
+			    	}
+			    }
+			  }
+			  System.out.println(" Choose an IP where Server is going to work ");
+				Scanner scan= new Scanner(System.in);
+				int option = scan.nextInt();
+				
+				ipAddr = ipList.get(option);
+			} catch (UnknownHostException e) {
+				System.out.println(" (error retrieving server host name)");
+			}
 
-        StringBuilder sb = new StringBuilder("");
-        while(s.hasNext())
-            sb.append(s.next());
-        String ipconfig = sb.toString();
-        Pattern pt=null;
-        if (baseRegex.startsWith("192")){
-        	pt = Pattern.compile("192\\.168\\.[0-9]{1,3}\\.[0-9]{1,3}");
-        }else {
-        	pt = Pattern.compile("10\\.1\\.[0-9]{1,3}\\.[0-9]{1,3}");
-        }
-        Matcher mt = pt.matcher(ipconfig);
-        mt.find();
-        String ip = mt.group();
-        
-		return ip;
+		return ipAddr;
 	}
 
 	// Client -> Obtaining it queue tasks
