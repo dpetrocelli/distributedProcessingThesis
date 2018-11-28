@@ -6,10 +6,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
@@ -116,6 +120,7 @@ public class DistributedRestController {
 
 	private String obtainIpAddress() {
 		String ipAddr = ""; 
+		/*
 		try {
 			 
 			 ArrayList<String> ipList = new ArrayList<String>();
@@ -142,6 +147,36 @@ public class DistributedRestController {
 			}
 
 		return ipAddr;
+		*/
+		Enumeration<NetworkInterface> nets;
+		 ArrayList<String> ipList = new ArrayList<String>();
+		try {
+			int i = 0;
+			nets = NetworkInterface.getNetworkInterfaces();
+			for (NetworkInterface netint : Collections.list(nets)){
+				 
+			        Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+			        for (InetAddress inetAddress : Collections.list(inetAddresses)) {
+			            String ip = inetAddress.toString().substring(1, inetAddress.toString().length());
+			        	if (!(ip.startsWith("0") || (ip.startsWith("fe") || (ip.startsWith("127"))))) {
+			        		ipList.add(ip);
+				    		System.out.println("["+i+"] - "+ip);
+				    		i++;
+			        	}
+			            
+			        }
+			        
+			}
+			System.out.println(" Choose an IP where Server is going to work ");
+			Scanner scan= new Scanner(System.in);
+			int option = scan.nextInt();
+			
+			ipAddr = ipList.get(option);
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  return ipAddr;
 	}
 
 	// Client -> Obtaining it queue tasks
