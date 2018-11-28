@@ -2,4 +2,5 @@ Manifest-Version: 1.0
 Built-By: L12082
 Build-Jdk: 1.8.0_192
 Created-By: Maven Integration for Eclipse
+Main-Class: DEV_WORKERx86.WORKx86.Worker
 
