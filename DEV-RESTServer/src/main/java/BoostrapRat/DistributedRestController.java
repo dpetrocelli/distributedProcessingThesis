@@ -21,6 +21,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -38,6 +40,10 @@ import com.rabbitmq.http.client.domain.QueueInfo;
 @RestController
 public class DistributedRestController {
 	
+	@Value("${server.ip}")
+    private String ipAddress;
+	
+	
 	// INIT RABBIT DATA
 	private static String enterQueue = "enterQueue";
 	private static String pendantQueue = "pendantQueue";
@@ -46,7 +52,7 @@ public class DistributedRestController {
 	Channel enterChannel;
 	Connection pendantConnection;
 	Channel pendantChannel;
-	String ipAddress;
+	
 	String username;
 	String password;
 	// END RABBIT DATA
@@ -73,7 +79,11 @@ public class DistributedRestController {
 		
 		// END DATABASE INITIALIZATION
 		
-		ipAddress = this.obtainIpAddress();
+		 // This is only for non MAVEN version
+		//ipAddress = this.obtainIpAddress();
+		 // FOR MAVEN VERSION INPUT PERSONALLY
+		this.ipAddress= this.obtainIP();
+		 System.out.println("IP ADDRESS: "+this.ipAddress);
 		
 		
 		this.factory = new ConnectionFactory();
@@ -116,7 +126,10 @@ public class DistributedRestController {
 	}
 	
 	
-	
+	@GetMapping
+    public String obtainIP(){
+        return this.ipAddress;
+    }
 
 	private String obtainIpAddress() {
 		String ipAddr = ""; 
