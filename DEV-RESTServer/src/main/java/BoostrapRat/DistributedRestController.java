@@ -11,8 +11,10 @@ import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -193,6 +195,19 @@ public class DistributedRestController {
 	}
 
 	// Client -> Obtaining it queue tasks
+	
+	@RequestMapping(value = "/setEnergyInfo", method = RequestMethod.GET)
+	public String setEnergyInfo (@RequestParam("power") String power, @RequestParam("current") String irms) {
+		System.out.println(" METHOD - SET ENERGY INFO ");
+		Date dNow = new Date( );
+	    SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM-dd hh:mm:ss");
+		String query = "insert into energyInfo (currentPower, currentIrms, dateTime) values ('"+power+"', '"+irms+"', '"+ft.format(dNow)+"')";
+		System.out.println(" SQL: "+query);
+		this.mdbc.doInsertOperation(query);
+		// CONTINUE HERE
+		return "ok - Ready";
+		
+	}
 	
 	@RequestMapping(value = "/getListTasks", method = RequestMethod.GET)
 	public ArrayList<String> getListTasks(@RequestParam("name") String name) {
