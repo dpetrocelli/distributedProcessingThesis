@@ -76,9 +76,10 @@ public class ClientUploader {
 			
 			// STEP 2.6 - Select filters to apply
 			ArrayList<String> filterSelected = new ArrayList<String>();
-			filterSelected.add("hd");
-			filterSelected.add("480"); 
-			filterSelected.add("240");
+			filterSelected.add("2k");
+			//filterSelected.add("hd");
+			//filterSelected.add("480"); 
+			//filterSelected.add("240");
 			
 			
 			timeStart = System.currentTimeMillis();

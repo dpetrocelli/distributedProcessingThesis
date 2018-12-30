@@ -117,9 +117,9 @@ public class DistributedRestController {
 		// ACTIVATE THREAD FOR LOOPING AND DELETING UNCORRESPONDANT MSG
 		int timeCheckInterval = 15*1000;
 		int timeoutPackage = 120*1000;
-		ManageAckList mal = new ManageAckList (this.enterChannel, this.AckService, timeCheckInterval, timeoutPackage);
-		Thread malThread = new Thread (mal);
-		malThread.start();
+		//ManageAckList mal = new ManageAckList (this.enterChannel, this.AckService, timeCheckInterval, timeoutPackage);
+		//Thread malThread = new Thread (mal);
+		//malThread.start();
 			
 		
 		//this.readFromFile (filterParameters, "src/main/resources/videoParameters");
@@ -443,7 +443,7 @@ public class DistributedRestController {
    
 	private void readFromContext(HashMap<String, ArrayList<String>> filterParameters2) {
 		// TODO Auto-generated method stub
-				String par = "4k|high|4096x2160|libx264|15600|5.1|60|veryslow|6|3|2|ac3|512|48000|6";
+				String par = "4k|high|4096x2160|libx264|15600|5.1|60|slow|6|3|2|ac3|512|48000|6";
 				par+="//2K|high|2560x1440|libx264|7800|5.1|48|slower|6|3|2|ac3|512|48000|6";
 				par+="//hd|high|1920x1080|libx264|3900|4.1|30|slow|6|3|2|ac3|320|48000|6";
 				par+="//720|main|1280x720|libx264|2000|4.1|25|medium|3|3|1|aac|320|44100|2";
